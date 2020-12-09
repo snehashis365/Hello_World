@@ -3,8 +3,13 @@ package com.snehashis.helloworld
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.CountDownTimer
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.view.HapticFeedbackConstants
+import android.view.View
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.widget.PopupMenu
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -18,26 +23,27 @@ import java.util.*
 import kotlin.collections.HashMap
 
 private const val MESSAGE_COLLECTION_KEY = "Messages"
+private const val ONLINE_COLLECTION_KEY = "Active_Users"
+private const val TYPING_COLLECTION_KEY = "User_Typing"
 private const val KEY_USER = "user"
 private const val KEY_MESSAGE = "message"
 private const val KEY_TIME = "timeStamp"
 private const val KEY_UID = "uid"
+private const val KEY_TYPING = "isTyping"
 
 var messageList = mutableListOf<Message>()
 
 private lateinit var mAuth : FirebaseAuth
 private val fireStoreReference : FirebaseFirestore = FirebaseFirestore.getInstance()
 private val messageCollection = fireStoreReference.collection(MESSAGE_COLLECTION_KEY)
+private val onlineUsersCollection = fireStoreReference.collection(ONLINE_COLLECTION_KEY)
+private val typingUsersCollection = fireStoreReference.collection(TYPING_COLLECTION_KEY)
 
 class ChatRoom : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_chat_room)
         mAuth = FirebaseAuth.getInstance()
-        if (mAuth.currentUser!!.isAnonymous)
-            userNameHeader.text = "Anonymous: " + mAuth.currentUser!!.displayName
-        else
-            userNameHeader.text = mAuth.currentUser!!.displayName
         val chatBoxAdapter = MessageAdapter(this, messageList)
         chatBoxView.adapter = chatBoxAdapter
         val chatBoxViewLayoutManager = LinearLayoutManager(this)
@@ -73,13 +79,50 @@ class ChatRoom : AppCompatActivity() {
             }
             popupMenu.show()
         }
+        messageInput.afterTextChangedDelayed {
+            val map = HashMap<String, Boolean>()
+            map["isTyping"] = false
+            val user = mAuth.currentUser
+            typingUsersCollection.document(user!!.uid).set(map)
+        }
 
+
+    }
+
+    fun TextView.afterTextChangedDelayed(afterTextChanged: (String) -> Unit) {
+        this.addTextChangedListener(object : TextWatcher {
+            var timer: CountDownTimer? = null
+
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+
+            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+
+            override fun afterTextChanged(editable: Editable?) {
+                val map = HashMap<String, Boolean>()
+                map["isTyping"] = true
+                val user = mAuth.currentUser
+                typingUsersCollection.document(user!!.uid).set(map)
+                timer?.cancel()
+                timer = object : CountDownTimer(3000, 1500) {
+                    override fun onTick(millisUntilFinished: Long) {}
+                    override fun onFinish() {
+                        afterTextChanged.invoke(editable.toString())
+                    }
+                }.start()
+            }
+        })
     }
 
     override fun onStart() {
         super.onStart()
         if(mAuth.currentUser == null)
             finish()
+        else {
+            val user = mAuth.currentUser
+            val map = HashMap<String,String>()
+            map["uid"] = user!!.uid
+            onlineUsersCollection.document(user.uid).set(map)
+        }
         messageCollection.orderBy(KEY_TIME, Query.Direction.ASCENDING).addSnapshotListener(this, EventListener { value, error ->
             if (error != null){
                 Log.e("SnapshotListener Error","Exception", error)
@@ -99,5 +142,52 @@ class ChatRoom : AppCompatActivity() {
                 }
             }
         })
+        onlineUsersCollection.addSnapshotListener(this, EventListener { value, error ->
+            if (error != null){
+                Log.e("SnapshotListener Error","Exception", error)
+                return@EventListener
+            }
+            else if (value != null){
+                var count = -1
+                for(document in value)
+                    count++
+                onlineUserCount.text = "Online : " + count
+            }
+        })
+
+        typingUsersCollection.addSnapshotListener(this, EventListener { value, error ->
+            if (error != null){
+                Log.e("SnapshotListener Error","Exception", error)
+                return@EventListener
+            }
+            else if (value != null){
+                var count = 0
+                for (document in value){
+                    val isTyping = document.getBoolean(KEY_TYPING)
+                    val user = mAuth.currentUser
+                    if(document.id == user!!.uid)
+                        continue
+                    if(isTyping!!)
+                        count++
+                }
+                when(count){
+                    0 -> typingView.visibility = View.GONE
+                    1 -> {
+                        typingView.visibility = View.VISIBLE
+                        typingView.text = "Someone is typing..."
+                    }
+                    else -> {
+                        typingView.visibility = View.VISIBLE
+                        typingView.text = "Many People are typing..."
+                    }
+                }
+            }
+        })
+    }
+
+    override fun onStop() {
+        super.onStop()
+        val user = mAuth.currentUser
+        onlineUsersCollection.document(user!!.uid).delete()
     }
 }

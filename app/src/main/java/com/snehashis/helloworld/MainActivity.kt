@@ -97,12 +97,13 @@ class MainActivity : AppCompatActivity() {
                     firebaseAuthWithGoogle(account.idToken!!)
                 } catch (e: ApiException) {
                     // Google Sign In failed, update UI appropriately
+                    Toast.makeText(this, e.message, Toast.LENGTH_SHORT).show()
                     Log.w(TAG, "Google sign in failed", e)
                     // ...
                 }
             }
             else{
-                Log.w(TAG,task.exception.toString())
+                Log.e(TAG,task.exception.toString())
             }
         }
     }
@@ -113,12 +114,15 @@ class MainActivity : AppCompatActivity() {
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
                     // Sign in success, update UI with the signed-in user's information
+
                     Log.d(TAG, "signInWithCredential:success")
+                    Toast.makeText(this, "Sign in success", Toast.LENGTH_SHORT).show()
                     startActivity(Intent(this, ChatRoom::class.java))
                     finish()
                 } else {
                     // If sign in fails, display a message to the user.
                     Log.w(TAG, "signInWithCredential:failure", task.exception)
+                    Toast.makeText(this, "Signin failed", Toast.LENGTH_SHORT).show()
                     // ...
                 }
 

@@ -4,20 +4,37 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:animateLayoutChanges="true"
     android:background="@drawable/chat_wallpaper"
     tools:context=".ChatRoom">
 
     <TextView
-        android:id="@+id/userNameHeader"
+        android:id="@+id/onlineUserCount"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
-        android:text="User"
+        android:layout_marginBottom="8dp"
+        android:drawableLeft="@drawable/ic_online"
+        android:drawablePadding="8dp"
+        android:text="Online : 5"
         android:textColor="@color/primaryTextColor"
         android:textSize="18sp"
         app:layout_constraintBottom_toTopOf="@+id/chatBoxView"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/typingView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:text="Someone is typing..."
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@+id/chatBoxView"
+        app:layout_constraintStart_toEndOf="@+id/onlineUserCount"
         app:layout_constraintTop_toTopOf="parent" />
 
     <ImageView
@@ -79,6 +96,7 @@
             android:layout_marginLeft="8dp"
             android:clickable="true"
             android:foreground="?attr/selectableItemBackgroundBorderless"
+            android:padding="2dp"
             app:srcCompat="@drawable/ic_round_send" />
     </LinearLayout>
 

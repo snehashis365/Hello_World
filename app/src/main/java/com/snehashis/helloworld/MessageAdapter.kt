@@ -22,6 +22,7 @@ class MessageAdapter(val context: Context, private val messageList: MutableList<
         val textMessage : TextView = view.textMessage
         val time : TextView = view.time
         val messageBody : LinearLayout = view.messageBody
+        val messageBodyHolder : LinearLayout = view.messageBodyHolder
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MessageViewHolder {
@@ -37,11 +38,14 @@ class MessageAdapter(val context: Context, private val messageList: MutableList<
         if (currentUid != message.uid) {
             holder.userNameLabel.text = message.user
             holder.messageBody.background = context.getDrawable(R.drawable.chat_incoming)
+            holder.userNameLabel.gravity = Gravity.LEFT
+            holder.messageBodyHolder.gravity = Gravity.LEFT
         }
         else {
             holder.userNameLabel.text = "You"
             holder.messageBody.background = context.getDrawable(R.drawable.chat_outgoing)
             holder.userNameLabel.gravity = Gravity.RIGHT
+            holder.messageBodyHolder.gravity = Gravity.RIGHT
         }
         holder.textMessage.text = message.text
         val calendar = Calendar.getInstance()
