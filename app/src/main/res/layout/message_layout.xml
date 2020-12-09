@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/messageBody"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginLeft="8dp"
+    android:layout_marginTop="3dp"
+    android:layout_marginRight="8dp"
+    android:layout_marginBottom="3dp"
+    android:alpha="0.8"
+    android:background="@drawable/chat_incoming"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/userNameLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:text="User"
+        android:textColor="@color/primaryTextColor"
+        android:textSize="14sp" />
+
+    <TextView
+        android:id="@+id/textMessage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:paddingLeft="10dp"
+        android:paddingTop="3dp"
+        android:paddingRight="10dp"
+        android:paddingBottom="5dp"
+        android:text="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque et pharetra urna. Praesent fringilla condimentum nisl vitae cursus. Sed interdum finibus ipsum."
+        android:textColor="@color/white"
+        android:textIsSelectable="true"
+        android:textSize="15sp" />
+
+    <TextView
+        android:id="@+id/time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right"
+        android:paddingRight="15dp"
+        android:paddingBottom="5dp"
+        android:text="22:10"
+        android:textColor="@color/secondaryDarkColor"
+        android:textSize="10sp" />
+
+</LinearLayout>
