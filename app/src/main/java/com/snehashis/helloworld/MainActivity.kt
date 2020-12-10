@@ -51,6 +51,7 @@ class MainActivity : AppCompatActivity() {
             val snackBar = Snackbar.make(it, "Creating temporary account...", Snackbar.LENGTH_INDEFINITE)
                     .setBackgroundTint(getColor(R.color.primaryDarkColor))
                     .setTextColor(getColor(R.color.primaryTextColor))
+                    .setAnimationMode(Snackbar.ANIMATION_MODE_SLIDE)
             snackBar.show()
             mAuth.signInAnonymously()
                 .addOnCompleteListener(this) { task ->
@@ -111,20 +112,25 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun firebaseAuthWithGoogle(idToken: String) {
+        val snackBar = Snackbar.make(startPage, "Signing in with Google...", Snackbar.LENGTH_INDEFINITE)
+                .setBackgroundTint(getColor(R.color.primaryDarkColor))
+                .setTextColor(getColor(R.color.primaryTextColor))
+                .setAnimationMode(Snackbar.ANIMATION_MODE_SLIDE)
+        snackBar.show()
         val credential = GoogleAuthProvider.getCredential(idToken, null)
         mAuth.signInWithCredential(credential)
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
                     // Sign in success, update UI with the signed-in user's information
-
+                    snackBar.setText("Sign in successful")
                     Log.d(TAG, "signInWithCredential:success")
-                    Toast.makeText(this, "Sign in success", Toast.LENGTH_SHORT).show()
                     startActivity(Intent(this, ChatRoom::class.java))
                     finish()
                 } else {
                     // If sign in fails, display a message to the user.
                     Log.w(TAG, "signInWithCredential:failure", task.exception)
-                    Toast.makeText(this, "Signin failed", Toast.LENGTH_SHORT).show()
+                    snackBar.setText("Sign in failed")
+                    snackBar.duration = Snackbar.LENGTH_SHORT
                     // ...
                 }
 

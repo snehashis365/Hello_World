@@ -32,8 +32,6 @@ private const val KEY_TIME = "timeStamp"
 private const val KEY_UID = "uid"
 private const val KEY_TYPING = "isTyping"
 
-var scroll_count = 0
-
 var messageList = mutableListOf<Message>()
 
 private lateinit var mAuth : FirebaseAuth
@@ -55,22 +53,32 @@ class ChatRoom : AppCompatActivity() {
 
         chatBoxView.addOnScrollListener(object : RecyclerView.OnScrollListener(){
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
-                super.onScrollStateChanged(recyclerView, newState)
+                if(!chatBoxView.canScrollVertically(1) && newState == RecyclerView.SCROLL_STATE_IDLE)
+                    scroll_btn.visibility = View.GONE
             }
 
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
-                if (dy < 0){
-                    scrollDown_btn.visibility = View.VISIBLE
-                }
+                if (dy < 0)
+                    scroll_btn.visibility = View.VISIBLE
+                else if(dy == 0)
+                    scroll_btn.visibility = View.GONE
             }
         })
-
-        scrollDown_btn.setOnClickListener {
+        scroll_btn.setOnClickListener {
             chatBoxView.smoothScrollToPosition(chatBoxAdapter.itemCount - 1)
-            scrollDown_btn.visibility = View.GONE
+            scroll_btn.visibility = View.GONE
         }
 
+        chatBoxView.addOnLayoutChangeListener { v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom ->
+            if (bottom < oldBottom) {
+                chatBoxView.post {
+                    chatBoxView.smoothScrollToPosition(chatBoxAdapter.itemCount - 1)
+                }
+            }
+        }
+
+        sendButton.visibility = View.GONE // Programmatically setting visibility will auto appear on typing
         //Send Message
         sendButton.setOnClickListener {
             if (messageInput.text.isNotBlank()){
@@ -119,6 +127,12 @@ class ChatRoom : AppCompatActivity() {
             override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
 
             override fun afterTextChanged(editable: Editable?) {
+                if (editable!!.isNotBlank()){
+                    sendButton.visibility = View.VISIBLE
+                }
+                else{
+                    sendButton.visibility = View.GONE
+                }
                 val map = HashMap<String, Boolean>()
                 map["isTyping"] = true
                 val user = mAuth.currentUser

@@ -26,13 +26,11 @@ class MessageAdapter(val context: Context, private val messageList: MutableList<
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MessageViewHolder {
-        //TODO
         val adapterLayout = LayoutInflater.from(parent.context).inflate(R.layout.message_layout, parent, false)
         return MessageViewHolder(adapterLayout)
     }
 
     override fun onBindViewHolder(holder: MessageViewHolder, position: Int) {
-        //TODO
         val message = messageList[position]
         val currentUid = FirebaseAuth.getInstance().currentUser!!.uid
         if (currentUid != message.uid) {
