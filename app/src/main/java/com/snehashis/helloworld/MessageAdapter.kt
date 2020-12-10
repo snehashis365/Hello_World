@@ -59,7 +59,7 @@ class MessageAdapter(val context: Context, private val messageList: MutableList<
         val calendar = Calendar.getInstance()
         calendar.time = timestamp!!.toDate()
         var time = ""
-        time += calendar.get(Calendar.DATE).toString() + "/" + calendar.get(Calendar.MONTH) + "/" + calendar.get(Calendar.YEAR) + " "
+        time += calendar.get(Calendar.DATE).toString() + "/" + calendar.get(Calendar.MONTH) + "/" + calendar.get(Calendar.YEAR).toString().substring(2) + " "
         time += calendar.get(Calendar.HOUR).toString() + ":"
         if(calendar.get(Calendar.MINUTE) < 10)
             time += "0" + calendar.get(Calendar.MINUTE).toString()

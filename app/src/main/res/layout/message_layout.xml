@@ -15,7 +15,6 @@
         android:id="@+id/messageBody"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        android:alpha="0.8"
         android:background="@drawable/chat_incoming"
         android:orientation="vertical">
 
@@ -24,6 +23,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingLeft="10dp"
+            android:paddingTop="3dp"
             android:paddingRight="10dp"
             android:text="User"
             android:textColor="@color/primaryTextColor"

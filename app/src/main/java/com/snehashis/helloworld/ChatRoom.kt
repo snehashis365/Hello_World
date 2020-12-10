@@ -13,6 +13,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.widget.PopupMenu
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.EventListener
@@ -30,6 +31,8 @@ private const val KEY_MESSAGE = "message"
 private const val KEY_TIME = "timeStamp"
 private const val KEY_UID = "uid"
 private const val KEY_TYPING = "isTyping"
+
+var scroll_count = 0
 
 var messageList = mutableListOf<Message>()
 
@@ -49,6 +52,24 @@ class ChatRoom : AppCompatActivity() {
         val chatBoxViewLayoutManager = LinearLayoutManager(this)
         chatBoxView.layoutManager = chatBoxViewLayoutManager
         chatBoxAdapter.notifyDataSetChanged()
+
+        chatBoxView.addOnScrollListener(object : RecyclerView.OnScrollListener(){
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                super.onScrollStateChanged(recyclerView, newState)
+            }
+
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+                if (dy < 0){
+                    scrollDown_btn.visibility = View.VISIBLE
+                }
+            }
+        })
+
+        scrollDown_btn.setOnClickListener {
+            chatBoxView.smoothScrollToPosition(chatBoxAdapter.itemCount - 1)
+            scrollDown_btn.visibility = View.GONE
+        }
 
         //Send Message
         sendButton.setOnClickListener {
@@ -89,7 +110,7 @@ class ChatRoom : AppCompatActivity() {
 
     }
 
-    fun TextView.afterTextChangedDelayed(afterTextChanged: (String) -> Unit) {
+    private fun TextView.afterTextChangedDelayed(afterTextChanged: (String) -> Unit) {
         this.addTextChangedListener(object : TextWatcher {
             var timer: CountDownTimer? = null
 

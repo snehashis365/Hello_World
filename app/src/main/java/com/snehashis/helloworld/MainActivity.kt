@@ -31,6 +31,8 @@ class MainActivity : AppCompatActivity() {
         if (user!=null){
             googleSignInButton.text = "Welcome Back"
             googleSignInButton.setCompoundDrawablesRelativeWithIntrinsicBounds(0,0,0,0)
+            googleSignInButton.isClickable = false
+            btn_login.isClickable = false
             btn_login.background = null
             btn_login.setTextColor(getColor(R.color.primaryTextColor))
             btn_login.text = "Just a second"
