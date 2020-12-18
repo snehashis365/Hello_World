@@ -273,7 +273,6 @@ class ChatRoom : AppCompatActivity(), MessageAdapter.MessageClickListener{
     }
     //Implementing Adapter Click Listener interface
     override fun onMessageItemClick(position: Int, isImage: Boolean) {
-        Toast.makeText(this, "Clicked $position", Toast.LENGTH_SHORT).show()
         if(isImage){
             val openImageIntent = Intent()
             openImageIntent.action = Intent.ACTION_VIEW
