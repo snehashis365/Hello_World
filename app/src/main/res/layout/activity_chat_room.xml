@@ -5,69 +5,111 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:animateLayoutChanges="true"
+    android:background="@drawable/chatwallpaer"
     tools:context=".ChatRoom">
 
-    <TextView
-        android:id="@+id/onlineUserCount"
-        android:layout_width="wrap_content"
-        android:layout_height="0dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="8dp"
-        android:drawableLeft="@drawable/ic_online"
-        android:drawablePadding="8dp"
-        android:gravity="center"
-        android:text="Online : "
-        android:textColor="@color/primaryTextColor"
-        android:textSize="18sp"
-        app:layout_constraintBottom_toTopOf="@+id/chatBoxView"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/typingView"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:id="@+id/topBar"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="10dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="8dp"
-        android:text="Someone is typing..."
-        android:visibility="gone"
-        app:layout_constraintBottom_toTopOf="@+id/chatBoxView"
-        app:layout_constraintStart_toEndOf="@+id/onlineUserCount"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <ImageView
-        android:id="@+id/btn_more"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
-        android:clickable="true"
-        android:foreground="?attr/selectableItemBackgroundBorderless"
-        android:padding="5dp"
+        android:animateLayoutChanges="true"
+        android:background="@color/primaryDarkColor"
+        android:orientation="horizontal"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/ic_more_24" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/onlineUserCount"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_marginStart="8dp"
+            android:drawablePadding="8dp"
+            android:gravity="center_vertical"
+            android:text="Online : "
+            android:textColor="@color/primaryTextColor"
+            android:textSize="18sp"
+            app:drawableLeftCompat="@drawable/ic_online" />
+
+        <TextView
+            android:id="@+id/typingView"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_marginStart="10dp"
+            android:gravity="center_vertical"
+            android:text="Someone is typing..."
+            android:visibility="visible" />
+
+        <View
+            android:id="@+id/spacerView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1" />
+
+        <ImageView
+            android:id="@+id/btn_more"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackgroundBorderless"
+            android:padding="5dp"
+            app:srcCompat="@drawable/ic_more_24" />
+    </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/chatBoxView"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_margin="3dp"
-        android:background="@color/primaryDarkColor"
+        android:layout_marginBottom="3dp"
         android:paddingTop="5dp"
         android:paddingRight="5dp"
+        app:layout_constraintBottom_toTopOf="@id/imagePreview"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/topBar">
+
+    </androidx.recyclerview.widget.RecyclerView>
+
+    <LinearLayout
+        android:id="@+id/imagePreview"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@color/primaryDarkColor"
+        android:orientation="horizontal"
+        android:paddingLeft="25dp"
+        android:paddingTop="5dp"
+        android:paddingRight="25dp"
+        android:paddingBottom="5dp"
         app:layout_constraintBottom_toTopOf="@+id/newMesssageLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btn_more" />
+        tools:visibility="visible">
+
+        <ImageView
+            android:id="@+id/selectedImagePreview"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:scaleType="centerCrop"
+            tools:srcCompat="@tools:sample/backgrounds/scenic" />
+
+        <TextView
+            android:id="@+id/captionMsg"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="12dp"
+            android:clickable="true"
+            android:gravity="center_vertical"
+            android:text="Add caption below or Touch here to cancel"
+            android:textColor="@color/secondaryDarkColor" />
+    </LinearLayout>
 
     <LinearLayout
         android:id="@+id/newMesssageLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
         android:layout_marginBottom="8dp"
         android:animateLayoutChanges="true"
         android:orientation="horizontal"
@@ -75,8 +117,21 @@
         android:paddingRight="10dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/chatBoxView">
+        app:layout_constraintStart_toStartOf="parent">
+
+        <ImageView
+            android:id="@+id/attachButton"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:layout_gravity="center_vertical"
+            android:layout_marginRight="8dp"
+            android:background="@drawable/button_bg"
+            android:clickable="true"
+            android:foreground="?attr/selectableItemBackgroundBorderless"
+            android:padding="8dp"
+            android:rotation="-45"
+            app:srcCompat="@drawable/ic_round_attach_file"
+            tools:visibility="visible" />
 
         <EditText
             android:id="@+id/messageInput"

@@ -9,12 +9,14 @@
     android:layout_marginTop="3dp"
     android:layout_marginRight="8dp"
     android:layout_marginBottom="3dp"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    tools:ignore="HardcodedText">
 
     <LinearLayout
         android:id="@+id/messageBody"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
+        android:animateLayoutChanges="true"
         android:background="@drawable/chat_incoming"
         android:orientation="vertical">
 
@@ -29,10 +31,21 @@
             android:textColor="@color/primaryTextColor"
             android:textSize="14sp" />
 
+        <ImageView
+            android:id="@+id/attachedImage"
+            android:layout_width="300dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:adjustViewBounds="true"
+            android:maxHeight="300dp"
+            android:padding="8dp"
+            android:scaleType="centerCrop"
+            tools:srcCompat="@tools:sample/backgrounds/scenic" />
+
         <TextView
             android:id="@+id/textMessage"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="0dp"
             android:layout_weight="1"
             android:autoLink="web|email"
             android:linksClickable="true"

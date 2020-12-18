@@ -1,28 +1,40 @@
 package com.snehashis.helloworld
 
+import android.annotation.SuppressLint
 import android.content.Context
-import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
+import com.bumptech.glide.request.transition.DrawableCrossFadeFactory
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.android.synthetic.main.message_layout.view.*
 import java.util.*
 
 
-class MessageAdapter(val context: Context, private val messageList: MutableList<Message>) : RecyclerView.Adapter<MessageAdapter.MessageViewHolder>() {
+class MessageAdapter(private val context: Context, private val messageList: MutableList<Message>) : RecyclerView.Adapter<MessageAdapter.MessageViewHolder>() {
 
-    class MessageViewHolder(private val view: View) : RecyclerView.ViewHolder(view) {
+    private val messageClickListener = context as MessageClickListener
+    class MessageViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val userNameLabel : TextView = view.userNameLabel
+        val attachedImage : ImageView = view.attachedImage
         val textMessage : TextView = view.textMessage
         val time : TextView = view.time
         val messageBody : LinearLayout = view.messageBody
         val messageBodyHolder : LinearLayout = view.messageBodyHolder
+    }
+
+    interface MessageClickListener {
+        fun onMessageItemClick(position: Int, isImage: Boolean)
+        fun onMessageItemLongClick(position: Int)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MessageViewHolder {
@@ -30,24 +42,49 @@ class MessageAdapter(val context: Context, private val messageList: MutableList<
         return MessageViewHolder(adapterLayout)
     }
 
+    @SuppressLint("UseCompatLoadingForDrawables")
     override fun onBindViewHolder(holder: MessageViewHolder, position: Int) {
         val message = messageList[position]
         val currentUid = FirebaseAuth.getInstance().currentUser!!.uid
         if (currentUid != message.uid) {
+            holder.userNameLabel.visibility = View.VISIBLE
             holder.userNameLabel.text = message.user
             holder.messageBody.background = context.getDrawable(R.drawable.chat_incoming)
-            holder.userNameLabel.gravity = Gravity.LEFT
-            holder.messageBodyHolder.gravity = Gravity.LEFT
+            holder.userNameLabel.gravity = Gravity.START
+            holder.messageBodyHolder.gravity = Gravity.START
         }
         else {
-            holder.userNameLabel.text = "You"
+            holder.userNameLabel.visibility = View.GONE
             holder.messageBody.background = context.getDrawable(R.drawable.chat_outgoing)
-            holder.userNameLabel.gravity = Gravity.RIGHT
-            holder.messageBodyHolder.gravity = Gravity.RIGHT
+            holder.userNameLabel.gravity = Gravity.END
+            holder.messageBodyHolder.gravity = Gravity.END
         }
-        holder.textMessage.text = message.text
-        val calendar = Calendar.getInstance()
-        calendar.time = message.timestamp!!.toDate()
+        if (message.isImage) {
+
+            Glide.with(context)
+                    .load(message.imageUri)
+                    .placeholder(R.drawable.ic_image_search)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .transition(DrawableTransitionOptions.withCrossFade(DrawableCrossFadeFactory.Builder().setCrossFadeEnabled(true).build())) // Have to build Cross fade to avoid transparent images bug with placeholder
+                    .into(holder.attachedImage)
+            holder.attachedImage.visibility = View.VISIBLE
+            holder.setIsRecyclable(false)
+            holder.attachedImage.setOnClickListener {
+                messageClickListener.onMessageItemClick(position, true)
+            }
+        }
+        else {
+            Glide.with(context).clear(holder.attachedImage)
+            holder.attachedImage.setImageDrawable(null)
+            holder.attachedImage.visibility = View.GONE
+        }
+        if (message.text!!.isNotBlank()) {
+            holder.textMessage.visibility = View.VISIBLE
+            holder.textMessage.text = message.text
+        }
+        else{
+            holder.textMessage.visibility = View.GONE
+        }
         holder.time.text = formatTimeStamp(message.timestamp)
     }
 
