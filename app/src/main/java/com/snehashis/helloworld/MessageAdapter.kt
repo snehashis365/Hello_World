@@ -30,6 +30,7 @@ class MessageAdapter(private val context: Context, private val messageList: Muta
         val time : TextView = view.time
         val messageBody : LinearLayout = view.messageBody
         val messageBodyHolder : LinearLayout = view.messageBodyHolder
+        val editLabel : TextView = view.editLabel
     }
 
     interface MessageClickListener {
@@ -104,6 +105,11 @@ class MessageAdapter(private val context: Context, private val messageList: Muta
             holder.messageBodyHolder.foreground = ContextCompat.getDrawable(context, R.drawable.selected_bg)
         else
             holder.messageBodyHolder.foreground = null
+
+        if(message.isEdited)
+            holder.editLabel.visibility = View.VISIBLE
+        else
+            holder.editLabel.visibility = View.GONE
     }
 
     override fun getItemCount() = messageList.size

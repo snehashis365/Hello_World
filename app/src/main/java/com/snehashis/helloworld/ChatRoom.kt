@@ -37,6 +37,7 @@ import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import com.google.firebase.storage.UploadTask
 import kotlinx.android.synthetic.main.activity_chat_room.*
+import kotlinx.android.synthetic.main.dialog_edit_text.view.*
 import kotlinx.android.synthetic.main.dialog_progress.view.*
 import java.io.ByteArrayOutputStream
 import java.util.*
@@ -52,6 +53,7 @@ private const val KEY_IMAGE = "isImage"
 private const val KEY_IMAGE_URI = "imageUri"
 private const val KEY_TIME = "timeStamp"
 private const val KEY_UID = "uid"
+private const val KEY_EDITED = "isEdited"
 private const val KEY_TYPING = "isTyping"
 private const val IMAGE_INTENT = 1001
 
@@ -235,8 +237,34 @@ class ChatRoom : AppCompatActivity(), MessageAdapter.MessageClickListener{
         }
 
         btn_edit.setOnClickListener {
-            Toast.makeText(this, "Coming Soon 😈", Toast.LENGTH_SHORT).show()
+            val selectedMessage = selectedMessageList[0]
             exitSelectionMode()
+            val editMessage = layoutInflater.inflate(R.layout.dialog_edit_text, null)
+            val editDialog = MaterialAlertDialogBuilder(this)
+            editDialog.setTitle("Edit Message")
+            editMessage.textInDialog.isSingleLine = false
+            editMessage.textInDialog.setText(selectedMessage.text)
+            editDialog.setView(editMessage)
+            val dialog = editDialog.setPositiveButton("Done") { _, _ ->
+                if (editMessage.textInDialog.text.isNotBlank() && editMessage.textInDialog.text.toString() != selectedMessage.text){
+                    val selectedMessageDocument = messageCollection.document(selectedMessage.msgID)
+                    selectedMessageDocument.update(KEY_MESSAGE, editMessage.textInDialog.text.toString())
+                    selectedMessageDocument.update(KEY_EDITED, true)
+                }
+                else if (editMessage.textInDialog.text.toString() == selectedMessage.text)
+                    Toast.makeText(this, "Message is Same", Toast.LENGTH_SHORT).show()
+                else
+                    Toast.makeText(this, "Message can't be blank", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("Cancel") {_, _ ->
+                //Do Nothing
+            }.create()
+            dialog.setOnShowListener {
+                dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(getColor(R.color.secondaryColor))
+                dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(getColor(R.color.secondaryColor))
+            }
+            dialog.setCancelable(false)
+            dialog.show()
         }
     }
 
@@ -444,10 +472,10 @@ class ChatRoom : AppCompatActivity(), MessageAdapter.MessageClickListener{
             else if (value != null){
                 messageList.clear()
                 for (document in value){
-                    val currentUser = document.getString(KEY_USER)
-                    val currentMessage = document.getString(KEY_MESSAGE)
+                    val currentUser = ""+document.getString(KEY_USER)
+                    val currentMessage = ""+document.getString(KEY_MESSAGE)
                     val timeStamp = document.getTimestamp(KEY_TIME)
-                    val uid = document.getString(KEY_UID)
+                    val uid = ""+document.getString(KEY_UID)
                     val msgID = document.id
                     var isImagePresent = document.getBoolean(KEY_IMAGE)
                     var imageUri = ""
@@ -457,7 +485,12 @@ class ChatRoom : AppCompatActivity(), MessageAdapter.MessageClickListener{
                         if (isImagePresent)
                             imageUri = ""+document.getString(KEY_IMAGE_URI)
                     }
-                    val message = Message(currentUser, currentMessage, isImagePresent, imageUri, timeStamp, uid, msgID)
+                    var isMessageEdited = document.getBoolean(KEY_EDITED)
+                    isMessageEdited = when(isMessageEdited){
+                        null -> false
+                        else -> isMessageEdited
+                    }
+                    val message = Message(currentUser, currentMessage, isImagePresent, imageUri, timeStamp, uid, msgID, isEdited = isMessageEdited)
                     messageList.add(message)
                     chatBoxView.adapter?.notifyDataSetChanged()
                     chatBoxView.scrollToPosition(chatBoxView.adapter!!.itemCount - 1)

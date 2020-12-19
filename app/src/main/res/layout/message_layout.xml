@@ -35,7 +35,21 @@
             android:paddingRight="10dp"
             android:text="User"
             android:textColor="@color/primaryTextColor"
-            android:textSize="14sp" />
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/editLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:layout_marginTop="3dp"
+            android:layout_marginEnd="5dp"
+            android:paddingLeft="10dp"
+            android:paddingTop="3dp"
+            android:paddingRight="10dp"
+            android:text="Edited"
+            android:textSize="14sp"
+            android:textStyle="italic" />
 
         <ImageView
             android:id="@+id/attachedImage"
