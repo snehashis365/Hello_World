@@ -1,6 +1,9 @@
 package com.snehashis.helloworld
 
 import android.annotation.SuppressLint
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
@@ -18,6 +21,7 @@ import android.view.View
 import android.webkit.MimeTypeMap
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -52,8 +56,10 @@ private const val KEY_TYPING = "isTyping"
 private const val IMAGE_INTENT = 1001
 
 var IMG_URI : Uri? = null
+var SELECTION_MODE = false
 
 var messageList = mutableListOf<Message>()
+var selectedMessageList = mutableListOf<Message>()
 
 private lateinit var mAuth : FirebaseAuth
 private val fireStoreReference : FirebaseFirestore = FirebaseFirestore.getInstance()
@@ -199,8 +205,39 @@ class ChatRoom : AppCompatActivity(), MessageAdapter.MessageClickListener{
             val user = mAuth.currentUser
             typingUsersCollection.document(user!!.uid).set(map)
         }
+        selectionBar.visibility = View.GONE
+        btn_back.setOnClickListener {
+            exitSelectionMode()
+        }
 
+        btn_copy.setOnClickListener {
+            copySelectedMessages()
+            exitSelectionMode()
+        }
 
+        btn_delete.setOnClickListener {
+            val confirmDialogBuilder = MaterialAlertDialogBuilder(this)
+            confirmDialogBuilder.setTitle("Permanently Delete Messages")
+            confirmDialogBuilder.setMessage("You are about to delete ${selectedMessageList.size} messages. This action cannot be undone do you want to continue?")
+            val dialog = confirmDialogBuilder.setPositiveButton("Confirm") { _, _ ->
+                deleteSelectedMessages()
+                exitSelectionMode()
+            }
+            .setNegativeButton("Cancel") { _, _ ->
+                exitSelectionMode()
+            }.create()
+            dialog.setOnShowListener {
+                dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(getColor(R.color.secondaryColor))
+                dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(getColor(R.color.secondaryColor))
+            }
+            dialog.setCancelable(false)
+            dialog.show()
+        }
+
+        btn_edit.setOnClickListener {
+            Toast.makeText(this, "Coming Soon 😈", Toast.LENGTH_SHORT).show()
+            exitSelectionMode()
+        }
     }
 
     private fun TextView.afterTextChangedDelayed(afterTextChanged: (String) -> Unit) {
@@ -271,19 +308,122 @@ class ChatRoom : AppCompatActivity(), MessageAdapter.MessageClickListener{
             }
         }
     }
-    //Implementing Adapter Click Listener interface
-    override fun onMessageItemClick(position: Int, isImage: Boolean) {
+    //Handling Message Item Clicks
+    override fun onMessageItemClick(position: Int, isImage: Boolean, selectionMode: Boolean) {
         if(isImage){
             val openImageIntent = Intent()
             openImageIntent.action = Intent.ACTION_VIEW
             openImageIntent.setDataAndType(Uri.parse(messageList[position].imageUri), "image/*")
             startActivity(openImageIntent)
         }
+        else if (SELECTION_MODE && selectionMode){
+            toggleSelection(position)
+        }
     }
 
     override fun onMessageItemLongClick(position: Int) {
-        //To be used when implementing long click
+        if (!SELECTION_MODE){
+            selectedMessageList.clear()
+            SELECTION_MODE = true
+            selectionBar.visibility = View.VISIBLE
+            toggleSelection(position)
+        }
     }
+
+    private fun toggleSelection(position: Int){
+        messageList[position].isSelected = !messageList[position].isSelected
+        if(messageList[position].isSelected)
+            selectedMessageList.add(messageList[position])
+        else
+            selectedMessageList.remove(messageList[position])
+        chatBoxView.adapter?.notifyDataSetChanged()
+        notifySelectionListChange()
+    }
+
+    @SuppressLint("SetTextI18n")
+    private fun notifySelectionListChange() { //Adjust the UI as per the updated list
+        selectedCount.text = "Selected : ${selectedMessageList.size}"
+        var flag = false
+        if(selectedMessageList.isNotEmpty()){
+            for (message in selectedMessageList) {
+                if (message.uid != mAuth.currentUser?.uid) {
+                    flag = true
+                    break
+                }
+            }
+            btn_delete.visibility = if (flag) View.GONE else View.VISIBLE
+            btn_edit.visibility = if (selectedMessageList.size > 1 || flag) View.GONE else View.VISIBLE
+        }
+        else
+            exitSelectionMode()
+    }
+
+    private fun exitSelectionMode() {
+        SELECTION_MODE = false
+        btn_delete.visibility = View.VISIBLE
+        btn_edit.visibility = View.VISIBLE
+        selectionBar.visibility = View.GONE
+        for (message in selectedMessageList){
+            message.isSelected = false
+        }
+        chatBoxView.adapter?.notifyDataSetChanged()
+    }
+
+    override fun onBackPressed() {
+        if (SELECTION_MODE)
+            exitSelectionMode()
+        else
+            super.onBackPressed()
+    }
+
+    private fun deleteSelectedMessages() {
+        for (message in selectedMessageList)
+            deleteMessage(message)
+    }
+
+    private fun deleteMessage(message: Message) {
+        val messageReference = messageCollection.document(message.msgID)
+        if (message.isImage){
+            val imageReference = fireStorageReference.child(formatUrlToFileName(message.imageUri))
+            imageReference.delete()
+        }
+        messageReference.delete()
+        chatBoxView.adapter?.notifyDataSetChanged()
+    }
+
+    private fun formatUrlToFileName(url : String) : String {
+        val lastIndex = url.indexOf('?')
+        val firstIndex = url.indexOf("%2F") + 3
+        return url.substring(firstIndex, lastIndex)
+    }
+
+    private fun copySelectedMessages () {
+        var copiedMessage = ""
+        if(selectedMessageList.size == 1)
+            copiedMessage = copyMessage(selectedMessageList[0])
+        else{
+            selectedMessageList.sortBy {it.timestamp}
+            for (message in selectedMessageList){
+                copiedMessage += copyMessage(message, false) + "\n" //Set to true to enable labels
+            }
+        }
+        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val clipData: ClipData = ClipData.newPlainText("Hello_World Messages", copiedMessage)
+        clipboard.setPrimaryClip(clipData)
+    }
+    private fun copyMessage(message: Message, format: Boolean = false): String {
+
+        return if (format)
+            generateMessageLabel(message) + "\n" + message.text
+        else
+            message.text!!
+    }
+
+    private fun generateMessageLabel(message: Message): String {
+        val timestamp = formatTimeStamp(message.timestamp)
+        return "> ${message.user} [$timestamp] :"
+    }
+
 
     @SuppressLint("SetTextI18n")
     override fun onStart() {
@@ -308,6 +448,7 @@ class ChatRoom : AppCompatActivity(), MessageAdapter.MessageClickListener{
                     val currentMessage = document.getString(KEY_MESSAGE)
                     val timeStamp = document.getTimestamp(KEY_TIME)
                     val uid = document.getString(KEY_UID)
+                    val msgID = document.id
                     var isImagePresent = document.getBoolean(KEY_IMAGE)
                     var imageUri = ""
                     if (isImagePresent == null)
@@ -316,7 +457,7 @@ class ChatRoom : AppCompatActivity(), MessageAdapter.MessageClickListener{
                         if (isImagePresent)
                             imageUri = ""+document.getString(KEY_IMAGE_URI)
                     }
-                    val message = Message(currentUser, currentMessage, isImagePresent, imageUri, timeStamp, uid)
+                    val message = Message(currentUser, currentMessage, isImagePresent, imageUri, timeStamp, uid, msgID)
                     messageList.add(message)
                     chatBoxView.adapter?.notifyDataSetChanged()
                     chatBoxView.scrollToPosition(chatBoxView.adapter!!.itemCount - 1)
@@ -370,13 +511,13 @@ class ChatRoom : AppCompatActivity(), MessageAdapter.MessageClickListener{
     }
 
     override fun onStop() {
-        super.onStop()
+        exitSelectionMode()
         val user = mAuth.currentUser
         onlineUsersCollection.document(user!!.uid).delete()
         if (uploadTask != null){
             if (uploadTask!!.isInProgress)
                 uploadTask!!.cancel()
         }
-
+        super.onStop()
     }
 }

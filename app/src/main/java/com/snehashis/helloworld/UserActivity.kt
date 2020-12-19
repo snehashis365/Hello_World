@@ -8,6 +8,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.bumptech.glide.Glide
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.UserProfileChangeRequest
 import kotlinx.android.synthetic.main.activity_user.*
@@ -53,8 +54,13 @@ class UserActivity : AppCompatActivity() {
             nameDialog.setNegativeButton("Cancel") {_, _ ->
                 //Nothing
             }
-            nameDialog.setCancelable(false)
-            nameDialog.show()
+            val dialog = nameDialog.create()
+            dialog.setOnShowListener {
+                dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(getColor(R.color.secondaryColor))
+                dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(getColor(R.color.secondaryColor))
+            }
+            dialog.setCancelable(false)
+            dialog.show()
         }
         btn_logout.setOnClickListener {
             if (user.isAnonymous)

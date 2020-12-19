@@ -1,6 +1,5 @@
 package com.snehashis.helloworld
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -9,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
@@ -33,7 +33,7 @@ class MessageAdapter(private val context: Context, private val messageList: Muta
     }
 
     interface MessageClickListener {
-        fun onMessageItemClick(position: Int, isImage: Boolean)
+        fun onMessageItemClick(position: Int, isImage: Boolean, selectionMode: Boolean)
         fun onMessageItemLongClick(position: Int)
     }
 
@@ -42,20 +42,19 @@ class MessageAdapter(private val context: Context, private val messageList: Muta
         return MessageViewHolder(adapterLayout)
     }
 
-    @SuppressLint("UseCompatLoadingForDrawables")
     override fun onBindViewHolder(holder: MessageViewHolder, position: Int) {
         val message = messageList[position]
         val currentUid = FirebaseAuth.getInstance().currentUser!!.uid
         if (currentUid != message.uid) {
             holder.userNameLabel.visibility = View.VISIBLE
             holder.userNameLabel.text = message.user
-            holder.messageBody.background = context.getDrawable(R.drawable.chat_incoming)
+            holder.messageBody.background = ContextCompat.getDrawable(context, R.drawable.chat_incoming)
             holder.userNameLabel.gravity = Gravity.START
             holder.messageBodyHolder.gravity = Gravity.START
         }
         else {
             holder.userNameLabel.visibility = View.GONE
-            holder.messageBody.background = context.getDrawable(R.drawable.chat_outgoing)
+            holder.messageBody.background = ContextCompat.getDrawable(context, R.drawable.chat_outgoing)
             holder.userNameLabel.gravity = Gravity.END
             holder.messageBodyHolder.gravity = Gravity.END
         }
@@ -69,8 +68,15 @@ class MessageAdapter(private val context: Context, private val messageList: Muta
                     .into(holder.attachedImage)
             holder.attachedImage.visibility = View.VISIBLE
             holder.setIsRecyclable(false)
-            holder.attachedImage.setOnClickListener {
-                messageClickListener.onMessageItemClick(position, true)
+            if (message.isSelected){
+                holder.attachedImage.setOnClickListener {
+                    messageClickListener.onMessageItemClick(position, isImage = false, selectionMode = true)
+                }
+            }
+            else {
+                holder.attachedImage.setOnClickListener {
+                    messageClickListener.onMessageItemClick(position, isImage = true, selectionMode = false)
+                }
             }
         }
         else {
@@ -86,25 +92,36 @@ class MessageAdapter(private val context: Context, private val messageList: Muta
             holder.textMessage.visibility = View.GONE
         }
         holder.time.text = formatTimeStamp(message.timestamp)
+        holder.messageBodyHolder.setOnClickListener {
+            messageClickListener.onMessageItemClick(position, isImage = false, selectionMode = true)
+        }
+        holder.messageBodyHolder.setOnLongClickListener {
+            messageClickListener.onMessageItemLongClick(position)
+            notifyDataSetChanged()
+            return@setOnLongClickListener true
+        }
+        if (message.isSelected)
+            holder.messageBodyHolder.foreground = ContextCompat.getDrawable(context, R.drawable.selected_bg)
+        else
+            holder.messageBodyHolder.foreground = null
     }
 
     override fun getItemCount() = messageList.size
+}
 
-    private fun formatTimeStamp (timestamp: Timestamp?) : String {
-        val calendar = Calendar.getInstance()
-        calendar.time = timestamp!!.toDate()
-        var time = ""
-        time += calendar.get(Calendar.DATE).toString() + "/" + calendar.get(Calendar.MONTH) + "/" + calendar.get(Calendar.YEAR).toString().substring(2) + " "
-        time += calendar.get(Calendar.HOUR).toString() + ":"
-        if(calendar.get(Calendar.MINUTE) < 10)
-            time += "0" + calendar.get(Calendar.MINUTE).toString()
-        else
-            time += calendar.get(Calendar.MINUTE).toString()
-        time += when (calendar.get(Calendar.AM_PM)) {
-            1 -> " PM"
-            else -> " AM"
-        }
-        return time
+fun formatTimeStamp (timestamp: Timestamp?) : String {
+    val calendar = Calendar.getInstance()
+    calendar.time = timestamp!!.toDate()
+    var time = ""
+    time += calendar.get(Calendar.DATE).toString() + "/" + calendar.get(Calendar.MONTH) + "/" + calendar.get(Calendar.YEAR).toString().substring(2) + " "
+    time += calendar.get(Calendar.HOUR).toString() + ":"
+    if(calendar.get(Calendar.MINUTE) < 10)
+        time += "0" + calendar.get(Calendar.MINUTE).toString()
+    else
+        time += calendar.get(Calendar.MINUTE).toString()
+    time += when (calendar.get(Calendar.AM_PM)) {
+        1 -> " PM"
+        else -> " AM"
     }
-
+    return time
 }
