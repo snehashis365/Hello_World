@@ -118,7 +118,7 @@ class MessageAdapter(private val context: Context, private val messageList: Muta
         else
             holder.editLabel.visibility = View.GONE
         // Setup if replying to someone
-        if (message.isReply){
+        if (message.isReply && message.replyingToMessage != null){
             holder.replyLayout.visibility = View.VISIBLE
             if (message.replyingToMessage?.uid == currentUid)
                 holder.replyUser.text = "You"
