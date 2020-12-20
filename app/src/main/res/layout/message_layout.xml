@@ -41,15 +41,74 @@
             android:id="@+id/editLabel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="5dp"
-            android:layout_marginTop="3dp"
-            android:layout_marginEnd="5dp"
+            android:layout_marginTop="1dp"
             android:paddingLeft="10dp"
             android:paddingTop="3dp"
             android:paddingRight="10dp"
             android:text="Edited"
             android:textSize="14sp"
             android:textStyle="italic" />
+
+        <LinearLayout
+            android:id="@+id/replyLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:background="@drawable/reply_bg"
+            android:clickable="true"
+            android:focusable="true"
+            android:orientation="horizontal"
+            android:paddingTop="3dp"
+            android:paddingEnd="8dp"
+            android:paddingBottom="3dp">
+
+            <View
+                android:id="@+id/view"
+                android:layout_width="5dp"
+                android:layout_height="match_parent"
+                android:layout_marginStart="2dp"
+                android:layout_marginEnd="2dp"
+                android:background="@color/secondaryDarkColor" />
+
+            <ImageView
+                android:id="@+id/replyImage"
+                android:layout_width="40dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                app:srcCompat="@drawable/ic_image"
+                tools:visibility="visible" />
+
+            <LinearLayout
+                android:id="@+id/replyMessagePreview"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginStart="3dp"
+                android:layout_marginTop="1dp"
+                android:layout_marginBottom="1dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/replyUser"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:singleLine="true"
+                    android:text="User 2"
+                    android:textColor="#CCC6A700"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/replyMessage"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:singleLine="true"
+                    android:text="Lorem ipsum dolor sit amet, consectrtur...."
+                    android:textColor="#D9FFFFFF"
+                    android:textSize="12sp" />
+            </LinearLayout>
+        </LinearLayout>
 
         <ImageView
             android:id="@+id/attachedImage"

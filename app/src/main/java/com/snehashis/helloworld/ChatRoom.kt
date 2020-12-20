@@ -27,12 +27,16 @@ import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
+import com.bumptech.glide.request.transition.DrawableCrossFadeFactory
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.EventListener
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.QueryDocumentSnapshot
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import com.google.firebase.storage.UploadTask
@@ -54,11 +58,15 @@ private const val KEY_IMAGE_URI = "imageUri"
 private const val KEY_TIME = "timeStamp"
 private const val KEY_UID = "uid"
 private const val KEY_EDITED = "isEdited"
+private const val KEY_REPLY = "isReply"
+private const val KEY_REPLY_ID = "replyID"
 private const val KEY_TYPING = "isTyping"
 private const val IMAGE_INTENT = 1001
 
 var IMG_URI : Uri? = null
 var SELECTION_MODE = false
+var REPLY_MODE = false
+var REPLY_ID = ""
 
 var messageList = mutableListOf<Message>()
 var selectedMessageList = mutableListOf<Message>()
@@ -123,67 +131,8 @@ class ChatRoom : AppCompatActivity(), MessageAdapter.MessageClickListener{
         sendButton.visibility = View.GONE // Programmatically setting visibility will auto appear on typing
         //Send Message
         sendButton.setOnClickListener {
-            if (messageInput.text.isNotBlank() || IMG_URI != null){
-                it.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
-                val map = HashMap<String, Any>()
-                val currentMessageReference = messageCollection.document()
-                map[KEY_USER] = mAuth.currentUser!!.displayName!!
-                map[KEY_MESSAGE] = "" + messageInput.text.toString().trim()
-                map[KEY_TIME] = Timestamp.now()
-                map[KEY_UID] = mAuth.currentUser!!.uid
-                if (imagePreview.isVisible && IMG_URI != null){
-                    val alertDialog = MaterialAlertDialogBuilder(this).create()
-                    val progressDialog = layoutInflater.inflate(R.layout.dialog_progress, null)
-                    alertDialog.setView(progressDialog)
-                    if(Build.VERSION.SDK_INT >= 24)
-                        progressDialog.progressBar.setProgress(0, true)
-                    else
-                        progressDialog.progressBar.progress = 0
-                    progressDialog.progressNumeric.text = "0%"
-                    alertDialog.setCancelable(false)
-                    alertDialog.show()
-                    val fileName = currentMessageReference.id + "." + getFileExtension(IMG_URI!!)
-                    val currentImageReference = fireStorageReference.child(fileName)
-                    if (getFileExtension(IMG_URI!!) == "jpg" || getFileExtension(IMG_URI!!) == "jpeg") { //Compress if JPEG
-                        val bytesData = compressJpegToByteArray(IMG_URI!!)
-                        uploadTask = currentImageReference.putBytes(bytesData)
-                    }
-                    else
-                        uploadTask = currentImageReference.putFile(IMG_URI!!)
-                    uploadTask!!.addOnSuccessListener {
-                        progressDialog.uploadingLabel.text = "Fetching link..."
-                        currentImageReference.downloadUrl.addOnSuccessListener { uri ->
-                            map[KEY_IMAGE] = true
-                            map[KEY_IMAGE_URI] = uri.toString()
-                            currentMessageReference.set(map)
-                            captionMsg.performClick()
-                            messageInput.text.clear()
-                            alertDialog.dismiss()
-                        }.addOnFailureListener { exception ->
-                            Toast.makeText(this, exception.message, Toast.LENGTH_SHORT).show()
-                            alertDialog.dismiss()
-                        }
-                    }.addOnFailureListener { exception ->
-                        Toast.makeText(this, "Upload Failed", Toast.LENGTH_SHORT).show()
-                        exception.printStackTrace()
-                    }.addOnProgressListener { progressSnapshot ->
-                        val progress = (100.0 * progressSnapshot.bytesTransferred /  progressSnapshot.totalByteCount).toInt()
-                        if(Build.VERSION.SDK_INT >= 24)
-                            progressDialog.progressBar.setProgressCompat(progress, true)
-                        else
-                            progressDialog.progressBar.progress = progress
-                        progressDialog.progressNumeric.text = "$progress%"
-                    }.addOnCanceledListener {
-                        currentImageReference.delete()
-                    }
-                }
-                else {
-                    map[KEY_IMAGE] = false
-                    currentMessageReference.set(map)
-                    captionMsg.performClick()
-                    messageInput.text.clear()
-                }
-            }
+            //Moving to a separate method for better code readability
+            sendMessage()
         }
 
         //More menu handle
@@ -266,6 +215,105 @@ class ChatRoom : AppCompatActivity(), MessageAdapter.MessageClickListener{
             dialog.setCancelable(false)
             dialog.show()
         }
+        replyPreviewDialog.visibility = View.GONE // Hiding initially will reappear when replying
+        btn_reply.setOnClickListener {
+            val selectedMessage = selectedMessageList[0]
+            REPLY_MODE =true
+            replyPreviewDialog.visibility = View.VISIBLE
+            captionReplyMsg.text = "Replying to ${selectedMessage.user}. Tap here to cancel"
+            if (selectedMessage.isImage) {
+                Glide.with(this)
+                    .load(selectedMessage.imageUri)
+                    .placeholder(R.drawable.ic_image_search)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .transition(DrawableTransitionOptions.withCrossFade(DrawableCrossFadeFactory.Builder().setCrossFadeEnabled(true).build()))
+                    .into(selectedReplyImagePreview)
+            }
+            else {
+                Glide.with(this)
+                    .load(R.drawable.ic_reply)
+                    .into(selectedReplyImagePreview)
+            }
+            REPLY_ID = selectedMessage.msgID
+            exitSelectionMode()
+        }
+    }
+
+    @SuppressLint("SetTextI18n")
+    private fun sendMessage() {
+        if (messageInput.text.isNotBlank() || IMG_URI != null){
+            sendButton.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+            val map = HashMap<String, Any>()
+            val currentMessageReference = messageCollection.document()
+            //Basic fields setup
+            map[KEY_USER] = mAuth.currentUser!!.displayName!!
+            map[KEY_MESSAGE] = "" + messageInput.text.toString().trim()
+            map[KEY_TIME] = Timestamp.now()
+            map[KEY_UID] = mAuth.currentUser!!.uid
+            //Setup for Replying
+            if (REPLY_MODE){
+                map[KEY_REPLY] = true
+                map[KEY_REPLY_ID] = REPLY_ID
+                REPLY_MODE = false
+                REPLY_ID = ""
+                replyPreviewDialog.visibility = View.GONE
+            }
+            else
+                map[KEY_REPLY] = false
+            //Setup for image in message
+            if (imagePreview.isVisible && IMG_URI != null){
+                val alertDialog = MaterialAlertDialogBuilder(this).create()
+                val progressDialog = layoutInflater.inflate(R.layout.dialog_progress, null)
+                alertDialog.setView(progressDialog)
+                if(Build.VERSION.SDK_INT >= 24)
+                    progressDialog.progressBar.setProgress(0, true)
+                else
+                    progressDialog.progressBar.progress = 0
+                progressDialog.progressNumeric.text = "0%"
+                alertDialog.setCancelable(false)
+                alertDialog.show()
+                val fileName = currentMessageReference.id + "." + getFileExtension(IMG_URI!!)
+                val currentImageReference = fireStorageReference.child(fileName)
+                if (getFileExtension(IMG_URI!!) == "jpg" || getFileExtension(IMG_URI!!) == "jpeg") { //Compress if JPEG
+                    val bytesData = compressJpegToByteArray(IMG_URI!!)
+                    uploadTask = currentImageReference.putBytes(bytesData)
+                }
+                else
+                    uploadTask = currentImageReference.putFile(IMG_URI!!)
+                uploadTask!!.addOnSuccessListener {
+                    progressDialog.uploadingLabel.text = "Fetching link..."
+                    currentImageReference.downloadUrl.addOnSuccessListener { uri ->
+                        map[KEY_IMAGE] = true
+                        map[KEY_IMAGE_URI] = uri.toString()
+                        currentMessageReference.set(map)
+                        captionMsg.performClick()
+                        messageInput.text.clear()
+                        alertDialog.dismiss()
+                    }.addOnFailureListener { exception ->
+                        Toast.makeText(this, exception.message, Toast.LENGTH_SHORT).show()
+                        alertDialog.dismiss()
+                    }
+                }.addOnFailureListener { exception ->
+                    Toast.makeText(this, "Upload Failed", Toast.LENGTH_SHORT).show()
+                    exception.printStackTrace()
+                }.addOnProgressListener { progressSnapshot ->
+                    val progress = (100.0 * progressSnapshot.bytesTransferred /  progressSnapshot.totalByteCount).toInt()
+                    if(Build.VERSION.SDK_INT >= 24)
+                        progressDialog.progressBar.setProgressCompat(progress, true)
+                    else
+                        progressDialog.progressBar.progress = progress
+                    progressDialog.progressNumeric.text = "$progress%"
+                }.addOnCanceledListener {
+                    currentImageReference.delete()
+                }
+            }
+            else {
+                map[KEY_IMAGE] = false
+                currentMessageReference.set(map)
+                captionMsg.performClick()
+                messageInput.text.clear()
+            }
+        }
     }
 
     private fun TextView.afterTextChangedDelayed(afterTextChanged: (String) -> Unit) {
@@ -299,7 +347,7 @@ class ChatRoom : AppCompatActivity(), MessageAdapter.MessageClickListener{
     }
 
     @Suppress("DEPRECATION")
-    private fun getCapturedImage(selectedPhotoUri: Uri): Bitmap  =
+    private fun getImageBitmap(selectedPhotoUri: Uri): Bitmap  =
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P)
             MediaStore.Images.Media.getBitmap(contentResolver, selectedPhotoUri)
         else {
@@ -308,7 +356,7 @@ class ChatRoom : AppCompatActivity(), MessageAdapter.MessageClickListener{
         }
 
     private fun compressJpegToByteArray(uri: Uri, quality: Int = 40) : ByteArray {
-        val bitmap = getCapturedImage(uri)
+        val bitmap = getImageBitmap(uri)
         val byteArrayOutputStream = ByteArrayOutputStream()
         bitmap.compress(Bitmap.CompressFormat.JPEG, quality, byteArrayOutputStream)
         return byteArrayOutputStream.toByteArray()
@@ -381,6 +429,7 @@ class ChatRoom : AppCompatActivity(), MessageAdapter.MessageClickListener{
             }
             btn_delete.visibility = if (flag) View.GONE else View.VISIBLE
             btn_edit.visibility = if (selectedMessageList.size > 1 || flag) View.GONE else View.VISIBLE
+            btn_reply.visibility = if (selectedMessageList.size > 1) View.GONE else View.VISIBLE
         }
         else
             exitSelectionMode()
@@ -453,6 +502,38 @@ class ChatRoom : AppCompatActivity(), MessageAdapter.MessageClickListener{
     }
 
 
+    private fun buildMessage(document : QueryDocumentSnapshot): Message {
+        val currentUser = ""+document.getString(KEY_USER)
+        val currentMessage = ""+document.getString(KEY_MESSAGE)
+        val timeStamp = document.getTimestamp(KEY_TIME)
+        val uid = ""+document.getString(KEY_UID)
+        val msgID = document.id
+        var isImagePresent = document.getBoolean(KEY_IMAGE)
+        var imageUri = ""
+        if (isImagePresent == null)
+            isImagePresent = false
+        else if (isImagePresent)
+            imageUri = ""+document.getString(KEY_IMAGE_URI)
+        var isMessageEdited = document.getBoolean(KEY_EDITED)
+        isMessageEdited = when(isMessageEdited){
+            null -> false
+            else -> isMessageEdited
+        }
+        var isMessageReply = document.getBoolean(KEY_REPLY)
+        var replyMessage : Message? = null
+        if(isMessageReply == null)
+            isMessageReply = false
+        else if (isMessageReply){
+            val replyMsgID = document.getString(KEY_REPLY_ID)
+            for (msg in messageList){
+                when (msg.msgID) {
+                    replyMsgID -> replyMessage = msg
+                }
+            }
+        }
+        return Message(currentUser, currentMessage, isImagePresent, imageUri, timeStamp, uid, msgID, isMessageEdited, isMessageReply, replyMessage)
+    }
+
     @SuppressLint("SetTextI18n")
     override fun onStart() {
         super.onStart()
@@ -472,25 +553,7 @@ class ChatRoom : AppCompatActivity(), MessageAdapter.MessageClickListener{
             else if (value != null){
                 messageList.clear()
                 for (document in value){
-                    val currentUser = ""+document.getString(KEY_USER)
-                    val currentMessage = ""+document.getString(KEY_MESSAGE)
-                    val timeStamp = document.getTimestamp(KEY_TIME)
-                    val uid = ""+document.getString(KEY_UID)
-                    val msgID = document.id
-                    var isImagePresent = document.getBoolean(KEY_IMAGE)
-                    var imageUri = ""
-                    if (isImagePresent == null)
-                        isImagePresent = false
-                    else{
-                        if (isImagePresent)
-                            imageUri = ""+document.getString(KEY_IMAGE_URI)
-                    }
-                    var isMessageEdited = document.getBoolean(KEY_EDITED)
-                    isMessageEdited = when(isMessageEdited){
-                        null -> false
-                        else -> isMessageEdited
-                    }
-                    val message = Message(currentUser, currentMessage, isImagePresent, imageUri, timeStamp, uid, msgID, isEdited = isMessageEdited)
+                    val message = buildMessage(document)
                     messageList.add(message)
                     chatBoxView.adapter?.notifyDataSetChanged()
                     chatBoxView.scrollToPosition(chatBoxView.adapter!!.itemCount - 1)

@@ -1,5 +1,6 @@
 package com.snehashis.helloworld
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -31,6 +32,11 @@ class MessageAdapter(private val context: Context, private val messageList: Muta
         val messageBody : LinearLayout = view.messageBody
         val messageBodyHolder : LinearLayout = view.messageBodyHolder
         val editLabel : TextView = view.editLabel
+        val replyLayout : LinearLayout = view.replyLayout
+        val replyMessagePreview : LinearLayout = view.replyMessagePreview
+        val replyUser : TextView = view.replyUser
+        val replyMessage : TextView = view.replyMessage
+        val replyImage : ImageView = view.replyImage
     }
 
     interface MessageClickListener {
@@ -43,6 +49,7 @@ class MessageAdapter(private val context: Context, private val messageList: Muta
         return MessageViewHolder(adapterLayout)
     }
 
+    @SuppressLint("SetTextI18n")
     override fun onBindViewHolder(holder: MessageViewHolder, position: Int) {
         val message = messageList[position]
         val currentUid = FirebaseAuth.getInstance().currentUser!!.uid
@@ -110,6 +117,34 @@ class MessageAdapter(private val context: Context, private val messageList: Muta
             holder.editLabel.visibility = View.VISIBLE
         else
             holder.editLabel.visibility = View.GONE
+        // Setup if replying to someone
+        if (message.isReply){
+            holder.replyLayout.visibility = View.VISIBLE
+            if (message.replyingToMessage?.uid == currentUid)
+                holder.replyUser.text = "You"
+            else
+                holder.replyUser.text = message.replyingToMessage?.user
+            if (message.replyingToMessage!!.isImage) {
+                holder.replyImage.visibility = View.VISIBLE
+                Glide.with(context)
+                        .load(message.replyingToMessage!!.imageUri)
+                        .placeholder(R.drawable.ic_image_search)
+                        .diskCacheStrategy(DiskCacheStrategy.ALL)
+                        .transition(DrawableTransitionOptions.withCrossFade(DrawableCrossFadeFactory.Builder().setCrossFadeEnabled(true).build()))
+                        .into(holder.replyImage)
+            }
+            else{
+                Glide.with(context).clear(holder.replyImage)
+                holder.replyImage.setImageDrawable(null)
+                holder.replyImage.visibility = View.GONE
+            }
+            var replyMsgLen = message.replyingToMessage!!.text.length
+            if (message.replyingToMessage!!.text.length > 24)
+                replyMsgLen = 24
+            holder.replyMessage.text = "${message.replyingToMessage!!.text.substring(0, replyMsgLen)}..."
+        }
+        else
+            holder.replyLayout.visibility = View.GONE
     }
 
     override fun getItemCount() = messageList.size
