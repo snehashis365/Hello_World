@@ -30,6 +30,18 @@
             app:srcCompat="@drawable/ic_back" />
     </LinearLayout>
 
+    <com.google.android.material.progressindicator.CircularProgressIndicator
+        android:id="@+id/imageUploadProgress"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:elevation="1dp"
+        app:indicatorColor="@color/secondaryColor"
+        app:layout_constraintBottom_toBottomOf="@+id/userImage"
+        app:layout_constraintEnd_toEndOf="@+id/userImage"
+        app:layout_constraintStart_toStartOf="@+id/userImage"
+        app:layout_constraintTop_toTopOf="@+id/userImage"
+        app:trackColor="@color/primaryLightColor" />
+
     <ImageView
         android:id="@+id/userImage"
         android:layout_width="150dp"

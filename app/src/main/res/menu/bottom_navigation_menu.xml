@@ -4,7 +4,9 @@
     tools:ignore="HardcodedText" >
     <item
         android:id="@+id/btn_user"
-        android:title="User" />
+        android:title="User"
+        android:icon="@drawable/ic_user"/>
     <item android:id="@+id/btn_about"
-        android:title="About"/>
+        android:title="About"
+        android:icon="@drawable/ic_about"/>
 </menu>

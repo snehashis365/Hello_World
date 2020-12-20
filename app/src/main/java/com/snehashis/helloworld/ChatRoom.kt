@@ -12,7 +12,6 @@ import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.CountDownTimer
-import android.os.Handler
 import android.provider.MediaStore
 import android.text.Editable
 import android.text.TextWatcher
@@ -24,8 +23,6 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.PopupMenu
-import androidx.core.content.ContextCompat
-import androidx.core.view.get
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -66,10 +63,10 @@ private const val KEY_REPLY_ID = "replyID"
 private const val KEY_TYPING = "isTyping"
 private const val IMAGE_INTENT = 1001
 
-var IMG_URI : Uri? = null
-var SELECTION_MODE = false
-var REPLY_MODE = false
-var REPLY_ID = ""
+private var IMG_URI : Uri? = null
+private var SELECTION_MODE = false
+private var REPLY_MODE = false
+private var REPLY_ID = ""
 
 var messageList = mutableListOf<Message>()
 var selectedMessageList = mutableListOf<Message>()
@@ -147,7 +144,14 @@ class ChatRoom : AppCompatActivity(), MessageAdapter.MessageClickListener{
                 when(item.itemId){
                     R.id.btn_user ->
                         startActivity(Intent(this, UserActivity::class.java))
-                    R.id.btn_about -> Toast.makeText(this, "Coming Soon", Toast.LENGTH_SHORT).show()
+                    R.id.btn_about -> {
+                        Toast.makeText(
+                            this,
+                            "Hello_World\nVersion: ${BuildConfig.VERSION_NAME}",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        startActivity(Intent(this,BottomNavigation::class.java))
+                    }
                 }
                 true
             }
