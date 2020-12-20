@@ -33,7 +33,6 @@ class MessageAdapter(private val context: Context, private val messageList: Muta
         val messageBodyHolder : LinearLayout = view.messageBodyHolder
         val editLabel : TextView = view.editLabel
         val replyLayout : LinearLayout = view.replyLayout
-        val replyMessagePreview : LinearLayout = view.replyMessagePreview
         val replyUser : TextView = view.replyUser
         val replyMessage : TextView = view.replyMessage
         val replyImage : ImageView = view.replyImage
@@ -92,7 +91,7 @@ class MessageAdapter(private val context: Context, private val messageList: Muta
             holder.attachedImage.setImageDrawable(null)
             holder.attachedImage.visibility = View.GONE
         }
-        if (message.text!!.isNotBlank()) {
+        if (message.text.isNotBlank()) {
             holder.textMessage.visibility = View.VISIBLE
             holder.textMessage.text = message.text
         }
@@ -118,7 +117,7 @@ class MessageAdapter(private val context: Context, private val messageList: Muta
         else
             holder.editLabel.visibility = View.GONE
         // Setup if replying to someone
-        if (message.isReply && message.replyingToMessage != null){
+        if (message.isReply){
             holder.replyLayout.visibility = View.VISIBLE
             if (message.replyingToMessage?.uid == currentUid)
                 holder.replyUser.text = "You"
@@ -138,10 +137,11 @@ class MessageAdapter(private val context: Context, private val messageList: Muta
                 holder.replyImage.setImageDrawable(null)
                 holder.replyImage.visibility = View.GONE
             }
-            var replyMsgLen = message.replyingToMessage!!.text.length
-            if (message.replyingToMessage!!.text.length > 24)
-                replyMsgLen = 24
-            holder.replyMessage.text = "${message.replyingToMessage!!.text.substring(0, replyMsgLen)}..."
+            holder.replyMessage.text = message.replyingToMessage!!.text
+            holder.replyLayout.setOnClickListener {
+                messageClickListener.onMessageItemClick(position, isImage = false, selectionMode = false)
+
+            }
         }
         else
             holder.replyLayout.visibility = View.GONE

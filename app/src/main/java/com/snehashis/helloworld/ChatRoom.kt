@@ -12,6 +12,7 @@ import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.CountDownTimer
+import android.os.Handler
 import android.provider.MediaStore
 import android.text.Editable
 import android.text.TextWatcher
@@ -23,6 +24,8 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.PopupMenu
+import androidx.core.content.ContextCompat
+import androidx.core.view.get
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -386,7 +389,7 @@ class ChatRoom : AppCompatActivity(), MessageAdapter.MessageClickListener{
     }
     //Handling Message Item Clicks
     override fun onMessageItemClick(position: Int, isImage: Boolean, selectionMode: Boolean) {
-        if(isImage){
+        if(isImage && !SELECTION_MODE){
             val openImageIntent = Intent()
             openImageIntent.action = Intent.ACTION_VIEW
             openImageIntent.setDataAndType(Uri.parse(messageList[position].imageUri), "image/*")
@@ -394,6 +397,11 @@ class ChatRoom : AppCompatActivity(), MessageAdapter.MessageClickListener{
         }
         else if (SELECTION_MODE && selectionMode){
             toggleSelection(position)
+        }
+        else if (!isImage && !selectionMode && !SELECTION_MODE && messageList[position].replyingToMessage!!.msgID.isNotBlank()){
+            val index = messageList.indexOf(messageList[position].replyingToMessage)
+            if (index >= 0)
+                chatBoxView.smoothScrollToPosition(index)
         }
     }
 
@@ -493,7 +501,7 @@ class ChatRoom : AppCompatActivity(), MessageAdapter.MessageClickListener{
         return if (format)
             generateMessageLabel(message) + "\n" + message.text
         else
-            message.text!!
+            message.text
     }
 
     private fun generateMessageLabel(message: Message): String {
@@ -531,6 +539,8 @@ class ChatRoom : AppCompatActivity(), MessageAdapter.MessageClickListener{
                 }
             }
         }
+        if (replyMessage == null)
+            replyMessage = Message("Deleted", "Message", false, "",null, "","")
         return Message(currentUser, currentMessage, isImagePresent, imageUri, timeStamp, uid, msgID, isMessageEdited, isMessageReply, replyMessage)
     }
 
@@ -610,6 +620,7 @@ class ChatRoom : AppCompatActivity(), MessageAdapter.MessageClickListener{
         exitSelectionMode()
         val user = mAuth.currentUser
         onlineUsersCollection.document(user!!.uid).delete()
+        typingUsersCollection.document(user.uid).delete()
         if (uploadTask != null){
             if (uploadTask!!.isInProgress)
                 uploadTask!!.cancel()

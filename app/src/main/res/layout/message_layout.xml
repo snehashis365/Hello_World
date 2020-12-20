@@ -14,7 +14,7 @@
     android:paddingTop="2dp"
     android:paddingEnd="8dp"
     android:paddingBottom="2dp"
-    tools:ignore="HardcodedText">
+    tools:ignore="HardcodedText,ContentDescription">
 
     <LinearLayout
         android:id="@+id/messageBody"
@@ -51,7 +51,7 @@
 
         <LinearLayout
             android:id="@+id/replyLayout"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="5dp"
             android:background="@drawable/reply_bg"
@@ -64,7 +64,7 @@
 
             <View
                 android:id="@+id/view"
-                android:layout_width="5dp"
+                android:layout_width="4dp"
                 android:layout_height="match_parent"
                 android:layout_marginStart="2dp"
                 android:layout_marginEnd="2dp"
@@ -80,7 +80,7 @@
 
             <LinearLayout
                 android:id="@+id/replyMessagePreview"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:layout_marginStart="3dp"
@@ -102,7 +102,6 @@
                     android:id="@+id/replyMessage"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
                     android:singleLine="true"
                     android:text="Lorem ipsum dolor sit amet, consectrtur...."
                     android:textColor="#D9FFFFFF"

@@ -244,7 +244,7 @@
             android:gravity="center"
             android:text="Add caption below or Touch here to cancel"
             android:textColor="@color/secondaryDarkColor"
-            android:textSize="12sp" />
+            android:textSize="13sp" />
     </LinearLayout>
 
     <LinearLayout
