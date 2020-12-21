@@ -10,6 +10,8 @@
     <color name="secondaryTextColor">#000000</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="green">#00C853</color>
+    <color name="grey">#A0A0A0</color>
     <color name="ucrop_color_toolbar">@color/secondaryColor</color>
     <color name="ucrop_color_statusbar">@color/secondaryDarkColor</color>
     <color name="ucrop_color_widget_active">@color/secondaryColor</color>

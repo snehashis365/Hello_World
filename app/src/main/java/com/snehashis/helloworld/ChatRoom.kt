@@ -61,6 +61,16 @@ private const val KEY_EDITED = "isEdited"
 private const val KEY_REPLY = "isReply"
 private const val KEY_REPLY_ID = "replyID"
 private const val KEY_TYPING = "isTyping"
+
+private const val KEY_USERS_PEOPLE = "Users"
+private const val KEY_NAME_PEOPLE = "Name"
+private const val KEY_ONLINE_PEOPLE = "isOnline"
+private const val KEY_PHOTO_PEOPLE =  "photoUri"
+private const val KEY_TIME_PEOPLE = "lastSeen"
+private const val KEY_BIO_PEOPLE = "bio"
+private const val KEY_UID_PEOPLE = "uid"
+
+
 private const val IMAGE_INTENT = 1001
 const val MENU_IEM_INTENT = "MENU_ITEM"
 
@@ -77,6 +87,7 @@ private val fireStoreReference : FirebaseFirestore = FirebaseFirestore.getInstan
 private val messageCollection = fireStoreReference.collection(MESSAGE_COLLECTION_KEY)
 private val onlineUsersCollection = fireStoreReference.collection(ONLINE_COLLECTION_KEY)
 private val typingUsersCollection = fireStoreReference.collection(TYPING_COLLECTION_KEY)
+private val usersCollection = fireStoreReference.collection(KEY_USERS_PEOPLE)
 private val fireStorageReference : StorageReference = FirebaseStorage.getInstance().getReference(STORAGE_IMAGE_KEY)
 private var uploadTask : UploadTask? = null // To ease handling upload tasks
 
@@ -149,6 +160,7 @@ class ChatRoom : AppCompatActivity(), MessageAdapter.MessageClickListener{
                 }
                 val bottomNavigationIntent = Intent(this,BottomNavigation::class.java)
                 bottomNavigationIntent.putExtra(MENU_IEM_INTENT, index)
+                bottomNavigationIntent.putExtra("uid",mAuth.currentUser?.uid)
                 startActivity(bottomNavigationIntent)
                 true
             }
@@ -548,13 +560,20 @@ class ChatRoom : AppCompatActivity(), MessageAdapter.MessageClickListener{
     @SuppressLint("SetTextI18n")
     override fun onStart() {
         super.onStart()
-        if(mAuth.currentUser == null)
+        val user = mAuth.currentUser
+        if(user == null)
             finish()
         else {
-            val user = mAuth.currentUser
-            val map = HashMap<String,String>()
-            map["uid"] = user!!.uid
+            val map = HashMap<String,Any>()
+            map["uid"] = user.uid
             onlineUsersCollection.document(user.uid).set(map)
+            //Storing User info to be retrieved in PeopleFragment.kt
+            val currentUserDocument = fireStoreReference.collection("Users").document(user.uid)
+            map[KEY_NAME_PEOPLE] = user.displayName!!
+            map[KEY_PHOTO_PEOPLE] = user.photoUrl.toString()
+            map[KEY_ONLINE_PEOPLE] = true
+            map[KEY_TIME_PEOPLE] = Timestamp.now()
+            currentUserDocument.set(map)
         }
         messageCollection.orderBy(KEY_TIME, Query.Direction.ASCENDING).addSnapshotListener(this,EventListener { value, error ->
                 if (error != null){
@@ -567,9 +586,9 @@ class ChatRoom : AppCompatActivity(), MessageAdapter.MessageClickListener{
                     for (document in value) {
                         val message = buildMessage(document)
                         messageList.add(message)
-                        chatBoxView.adapter?.notifyDataSetChanged()
-                        chatBoxView.scrollToPosition(chatBoxView.adapter!!.itemCount - 1)
                     }
+                    chatBoxView.adapter?.notifyDataSetChanged()
+                    chatBoxView.scrollToPosition(chatBoxView.adapter!!.itemCount - 1)
                 }
             })
         onlineUsersCollection.addSnapshotListener(this, EventListener { value, error ->
@@ -597,7 +616,6 @@ class ChatRoom : AppCompatActivity(), MessageAdapter.MessageClickListener{
                 var count = 0
                 for (document in value){
                     val isTyping = document.getBoolean(KEY_TYPING)
-                    val user = mAuth.currentUser
                     if(document.id == user!!.uid)
                         continue
                     if(isTyping!!)
@@ -618,11 +636,22 @@ class ChatRoom : AppCompatActivity(), MessageAdapter.MessageClickListener{
         })
     }
 
+    private fun updateStatus(isOnline : Boolean){
+        usersCollection.document(mAuth.currentUser!!.uid).update(KEY_ONLINE_PEOPLE, isOnline)
+        usersCollection.document(mAuth.currentUser!!.uid).update(KEY_TIME_PEOPLE, Timestamp.now())
+    }
+
+    override fun onResume() {
+        updateStatus(false)
+        super.onResume()
+    }
+
     override fun onStop() {
         exitSelectionMode()
         val user = mAuth.currentUser
         onlineUsersCollection.document(user!!.uid).delete()
         typingUsersCollection.document(user.uid).delete()
+        updateStatus(true)
         if (uploadTask != null){
             if (uploadTask!!.isInProgress)
                 uploadTask!!.cancel()

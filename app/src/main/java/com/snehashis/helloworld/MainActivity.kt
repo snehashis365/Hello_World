@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.util.Log
 import android.widget.Toast
+import androidx.core.net.toUri
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
@@ -58,7 +59,10 @@ class MainActivity : AppCompatActivity() {
             mAuth.signInAnonymously()
                 .addOnCompleteListener(this) { task ->
                     if (task.isSuccessful) { // Sign in success, update UI with the signed-in user's information
-                        val anonymousUserProfile = UserProfileChangeRequest.Builder().setDisplayName("user_"+ mAuth.currentUser?.uid?.substring(0, 4)).build()
+                        val anonymousUserProfile = UserProfileChangeRequest.Builder()
+                            .setDisplayName("user_"+ mAuth.currentUser?.uid?.substring(0, 4))
+                            .setPhotoUri("https://itg.wfu.edu/wp-content/uploads/Cogn_mode-225x225.png".toUri())
+                            .build()
                         snackBar.setText("Generating username...")
                         mAuth.currentUser?.updateProfile(anonymousUserProfile)?.addOnCompleteListener {
                             snackBar.dismiss()

@@ -43,6 +43,8 @@ class UserFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         val root = inflater.inflate(R.layout.fragment_user, container, false)
+        //Will use this to retrieve other user details later on to show their profile picture
+        val receivedUID = activity?.intent?.getStringExtra("uid")
         mAuth = FirebaseAuth.getInstance()
         val user = mAuth.currentUser
         val imageUploadProgress = root.imageUploadProgress
