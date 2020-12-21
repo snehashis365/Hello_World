@@ -23,9 +23,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         android:background="@color/secondaryColor"
-        app:itemTextColor="@color/white"
+        app:elevation="3dp"
         app:itemIconSize="28dp"
-        app:itemIconTint="@color/white"
         app:itemRippleColor="@color/secondaryLightColor"
         app:itemHorizontalTranslationEnabled="true"
         app:menu="@menu/bottom_navigation_menu"/>

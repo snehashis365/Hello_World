@@ -3,8 +3,12 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     tools:ignore="HardcodedText" >
     <item
-        android:id="@+id/btn_user"
+        android:id="@+id/user_popup"
         android:title="User" />
-    <item android:id="@+id/btn_about"
+    <item
+        android:id="@+id/people_popup"
+        android:title="People" />
+    <item
+        android:id="@+id/about_popup"
         android:title="About"/>
 </menu>

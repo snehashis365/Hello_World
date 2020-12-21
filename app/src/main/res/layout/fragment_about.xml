@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:ignore="HardcodedText,ContentDescription"
+    tools:context=".fragments.AboutFragment">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/aboutConstraintLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ImageView
+            android:id="@+id/app_logo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="120dp"
+            android:background="@drawable/round_bg"
+            android:padding="12dp"
+            android:src="@drawable/share_icon"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/app_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Hello_World"
+            android:textColor="@color/primaryTextColor"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/app_logo" />
+
+        <TextView
+            android:id="@+id/app_about"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="32dp"
+            android:layout_marginEnd="32dp"
+            android:gravity="center"
+            android:padding="8dp"
+            android:text="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque et pharetra urna. Praesent fringilla condimentum nisl vitae cursus. Sed interdum finibus ipsum."
+            android:textSize="16sp"
+            app:layout_constraintBottom_toTopOf="@+id/version_layout"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/app_name"
+            app:layout_constraintVertical_bias="0.3" />
+
+        <LinearLayout
+            android:id="@+id/version_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="60dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:orientation="horizontal"
+            android:padding="8dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
+
+            <TextView
+                android:id="@+id/version_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Version : " />
+
+            <TextView
+                android:id="@+id/version_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0.1-alpha01"
+                android:textColor="@color/secondaryDarkColor" />
+        </LinearLayout>
+
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</FrameLayout>

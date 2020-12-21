@@ -39,11 +39,6 @@ private val fireStorageReference : StorageReference = FirebaseStorage.getInstanc
 private var IMG_URI : Uri? = null
 private const val DEFAULT_PIC = "https://itg.wfu.edu/wp-content/uploads/Cogn_mode-225x225.png"
 
-/**
- * A simple [Fragment] subclass.
- * Use the [UserFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
 class UserFragment : Fragment() {
     @SuppressLint("SetTextI18n")
 

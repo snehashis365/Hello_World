@@ -11,11 +11,10 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.HelloWorld">
-        <activity android:name=".BottomNavigation"></activity>
+        <activity android:name=".BottomNavigation" />
         <activity
             android:name=".ChatRoom"
             android:windowSoftInputMode="adjustResize" />
-        <activity android:name=".UserActivity" />
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

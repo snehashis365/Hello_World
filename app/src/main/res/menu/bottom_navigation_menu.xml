@@ -3,10 +3,14 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     tools:ignore="HardcodedText" >
     <item
-        android:id="@+id/btn_user"
+        android:id="@+id/people"
+        android:title="People"
+        android:icon="@drawable/ic_people" />
+    <item
+        android:id="@+id/user"
         android:title="User"
         android:icon="@drawable/ic_user"/>
-    <item android:id="@+id/btn_about"
+    <item android:id="@+id/about"
         android:title="About"
         android:icon="@drawable/ic_about"/>
 </menu>

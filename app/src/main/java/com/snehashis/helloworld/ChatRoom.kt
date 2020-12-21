@@ -62,6 +62,7 @@ private const val KEY_REPLY = "isReply"
 private const val KEY_REPLY_ID = "replyID"
 private const val KEY_TYPING = "isTyping"
 private const val IMAGE_INTENT = 1001
+const val MENU_IEM_INTENT = "MENU_ITEM"
 
 private var IMG_URI : Uri? = null
 private var SELECTION_MODE = false
@@ -141,18 +142,14 @@ class ChatRoom : AppCompatActivity(), MessageAdapter.MessageClickListener{
             val popupMenu = PopupMenu(this, it)
             popupMenu.inflate(R.menu.popup_menu)
             popupMenu.setOnMenuItemClickListener { item->
-                when(item.itemId){
-                    R.id.btn_user ->
-                        startActivity(Intent(this, UserActivity::class.java))
-                    R.id.btn_about -> {
-                        Toast.makeText(
-                            this,
-                            "Hello_World\nVersion: ${BuildConfig.VERSION_NAME}",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        startActivity(Intent(this,BottomNavigation::class.java))
-                    }
+                val index = when(item.itemId){
+                    R.id.people_popup -> 0
+                    R.id.user_popup -> 1
+                    else -> 2
                 }
+                val bottomNavigationIntent = Intent(this,BottomNavigation::class.java)
+                bottomNavigationIntent.putExtra(MENU_IEM_INTENT, index)
+                startActivity(bottomNavigationIntent)
                 true
             }
             popupMenu.show()
