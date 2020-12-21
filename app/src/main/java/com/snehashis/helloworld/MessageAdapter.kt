@@ -6,6 +6,7 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AnimationUtils
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -145,6 +146,12 @@ class MessageAdapter(private val context: Context, private val messageList: Muta
         }
         else
             holder.replyLayout.visibility = View.GONE
+        if (position == messageList.size - 1) {
+            holder.messageBody.animation =AnimationUtils.loadAnimation(context, when(currentUid){
+                message.uid ->  R.anim.outgoing_new_message_anim
+                else -> R.anim.incoming_new_message_anim
+            })
+        }
     }
 
     override fun getItemCount() = messageList.size

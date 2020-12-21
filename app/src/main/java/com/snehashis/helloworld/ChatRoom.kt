@@ -556,21 +556,22 @@ class ChatRoom : AppCompatActivity(), MessageAdapter.MessageClickListener{
             map["uid"] = user!!.uid
             onlineUsersCollection.document(user.uid).set(map)
         }
-        messageCollection.orderBy(KEY_TIME, Query.Direction.ASCENDING).addSnapshotListener(this, EventListener { value, error ->
-            if (error != null){
-                Log.e("SnapshotListener Error","Exception", error)
-                return@EventListener
-            }
-            else if (value != null){
-                messageList.clear()
-                for (document in value){
-                    val message = buildMessage(document)
-                    messageList.add(message)
-                    chatBoxView.adapter?.notifyDataSetChanged()
-                    chatBoxView.scrollToPosition(chatBoxView.adapter!!.itemCount - 1)
+        messageCollection.orderBy(KEY_TIME, Query.Direction.ASCENDING).addSnapshotListener(this,EventListener { value, error ->
+                if (error != null){
+                    Log.e("SnapshotListener Error","Exception", error)
+                    return@EventListener
                 }
-            }
-        })
+                else if (value != null){
+                    //Plan to optimize this by not clearing the list in upcoming version
+                    messageList.clear()
+                    for (document in value) {
+                        val message = buildMessage(document)
+                        messageList.add(message)
+                        chatBoxView.adapter?.notifyDataSetChanged()
+                        chatBoxView.scrollToPosition(chatBoxView.adapter!!.itemCount - 1)
+                    }
+                }
+            })
         onlineUsersCollection.addSnapshotListener(this, EventListener { value, error ->
             if (error != null){
                 Log.e("SnapshotListener Error","Exception", error)

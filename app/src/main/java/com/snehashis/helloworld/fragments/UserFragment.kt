@@ -8,18 +8,17 @@ import android.view.ViewGroup
 import com.snehashis.helloworld.R
 import android.annotation.SuppressLint
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
-import android.provider.MediaStore
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.transition.DrawableCrossFadeFactory
+import com.github.dhaval2404.imagepicker.ImagePicker
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.storage.FirebaseStorage
@@ -28,7 +27,6 @@ import com.snehashis.helloworld.MainActivity
 import kotlinx.android.synthetic.main.fragment_user.*
 import kotlinx.android.synthetic.main.dialog_edit_text.view.*
 import kotlinx.android.synthetic.main.fragment_user.view.*
-import java.io.ByteArrayOutputStream
 
 private lateinit var mAuth : FirebaseAuth
 
@@ -53,7 +51,6 @@ class UserFragment : Fragment() {
         val nameTv = root.nameTv
         val userImage = root.userImage
         val editProfilePic = root.editProfilePic
-        val btn_logout = root.btn_logout
 
         imageUploadProgress.visibility = View.GONE
         uidTv.text = user?.uid
@@ -94,7 +91,7 @@ class UserFragment : Fragment() {
         editProfilePic.setOnClickListener {
             openImage()
         }
-        btn_logout.setOnClickListener {
+        root.btn_logout.setOnClickListener {
             if (user.isAnonymous)
                 user.delete()
             mAuth.signOut()
@@ -108,8 +105,7 @@ class UserFragment : Fragment() {
     private fun setProfilePicture() {
         val currentImageReference = fireStorageReference.child(mAuth.currentUser!!.uid)
         imageUploadProgress.visibility = View.VISIBLE
-        val compressedImage = compressJpegToByteArray(IMG_URI!!)
-        currentImageReference.putBytes(compressedImage).addOnSuccessListener {
+        currentImageReference.putFile(IMG_URI!!).addOnSuccessListener {
             Toast.makeText(activity, "Upload Successful", Toast.LENGTH_SHORT).show()
             currentImageReference.downloadUrl.addOnSuccessListener { storage_link ->
                 val userProfileChangeRequest = UserProfileChangeRequest.Builder().setPhotoUri(storage_link).build()
@@ -133,27 +129,12 @@ class UserFragment : Fragment() {
         }
     }
 
-    @Suppress("DEPRECATION")
-    private fun getImageBitmap(selectedPhotoUri: Uri): Bitmap =
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P)
-            MediaStore.Images.Media.getBitmap(activity?.contentResolver, selectedPhotoUri)
-        else {
-            val source = ImageDecoder.createSource(activity!!.contentResolver, selectedPhotoUri)
-            ImageDecoder.decodeBitmap(source)
-        }
-
-    private fun compressJpegToByteArray(uri: Uri, quality: Int = 40) : ByteArray {
-        val bitmap = getImageBitmap(uri)
-        val byteArrayOutputStream = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.JPEG, quality, byteArrayOutputStream)
-        return byteArrayOutputStream.toByteArray()
-    }
-
     private fun openImage() {
-        val imageOpenIntent = Intent()
-        imageOpenIntent.type = "image/*"
-        imageOpenIntent.action = Intent.ACTION_GET_CONTENT
-        startActivityForResult(imageOpenIntent, IMAGE_INTENT)
+        ImagePicker.with(this)
+            .crop()
+            .galleryOnly()
+            .compress(320)
+            .start(IMAGE_INTENT)
     }
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
@@ -161,7 +142,18 @@ class UserFragment : Fragment() {
             IMAGE_INTENT -> {
                 if (resultCode == AppCompatActivity.RESULT_OK){
                     IMG_URI = data!!.data
-                    setProfilePicture()
+                    val confirmDialog = MaterialAlertDialogBuilder(activity!!)
+                    confirmDialog.setTitle("Confirm profile picture?")
+                    confirmDialog.setPositiveButton("Confirm") {_, _ ->
+                        setProfilePicture()
+                    }.setNegativeButton("Cancel", null)
+                    val dialog = confirmDialog.create()
+                    dialog.setOnShowListener {
+                        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(activity!!.getColor(R.color.secondaryColor))
+                        dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(activity!!.getColor(R.color.secondaryDarkColor))
+                    }
+                    dialog.setCancelable(false)
+                    dialog.show()
                 }
             }
         }
