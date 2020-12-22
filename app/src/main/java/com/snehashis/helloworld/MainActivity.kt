@@ -16,6 +16,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.UserProfileChangeRequest
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.android.synthetic.main.activity_main.*
 
 private lateinit var mAuth : FirebaseAuth
@@ -23,6 +24,15 @@ private lateinit var googleSignInClient : GoogleSignInClient
 const val RC_SIGN_IN = 111
 const val TAG = "SignInWithFirebase"
 
+private const val KEY_USERS_PEOPLE = "Users"
+private const val KEY_NAME_PEOPLE = "Name"
+private const val KEY_ONLINE_PEOPLE = "isOnline"
+private const val KEY_PHOTO_PEOPLE =  "photoUri"
+private const val KEY_TIME_PEOPLE = "lastSeen"
+private const val KEY_UID_PEOPLE = "uid"
+
+private val fireStoreReference : FirebaseFirestore = FirebaseFirestore.getInstance()
+private val userCollection = fireStoreReference.collection(KEY_USERS_PEOPLE)
 class MainActivity : AppCompatActivity() {
     @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -65,6 +75,10 @@ class MainActivity : AppCompatActivity() {
                             .build()
                         snackBar.setText("Generating username...")
                         mAuth.currentUser?.updateProfile(anonymousUserProfile)?.addOnCompleteListener {
+                            snackBar.setText("Generating Database Entry...")
+                            val map = HashMap<String, Any>()
+                            map[KEY_UID_PEOPLE] = mAuth.currentUser!!.uid
+                            userCollection.document(mAuth.currentUser!!.uid).set(map)
                             snackBar.dismiss()
                             startActivity(Intent(this, ChatRoom::class.java))
                             finish()
@@ -81,8 +95,24 @@ class MainActivity : AppCompatActivity() {
 
         Handler().postDelayed({
             if (user != null) {
-                startActivity(Intent(this, ChatRoom::class.java))
-                finish()
+                val userDoc = userCollection.document(user.uid)
+                userDoc.get().addOnSuccessListener { value ->
+                    if (value == null) {
+                        Toast.makeText(this, "Error", Toast.LENGTH_SHORT).show()
+                    } else if (value.getString(KEY_UID_PEOPLE) == null){
+                        val map = HashMap<String, Any>()
+                        map[KEY_UID_PEOPLE] = user.uid
+                        userCollection.document(user.uid).set(map).addOnCompleteListener {
+                            startActivity(Intent(this, ChatRoom::class.java))
+                            finish()
+                        }
+                    }
+                    else {
+                        startActivity(Intent(this, ChatRoom::class.java))
+                        finish()
+                    }
+                }
+
             }
         }, 3300) // Delay for the animation to finish
 
@@ -130,6 +160,9 @@ class MainActivity : AppCompatActivity() {
                     // Sign in success, update UI with the signed-in user's information
                     snackBar.setText("Sign in successful")
                     Log.d(TAG, "signInWithCredential:success")
+                    val map = HashMap<String, Any>()
+                    map[KEY_UID_PEOPLE] = mAuth.currentUser!!.uid
+                    userCollection.document(mAuth.currentUser!!.uid).set(map)
                     startActivity(Intent(this, ChatRoom::class.java))
                     finish()
                 } else {
