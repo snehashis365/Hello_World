@@ -649,6 +649,7 @@ class ChatRoom : AppCompatActivity(), MessageAdapter.MessageClickListener{
     }
 
     override fun onResume() {
+        FIRST_DOCUMENT = true
         updateStatus(false)
         super.onResume()
     }
