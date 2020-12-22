@@ -253,6 +253,11 @@ class ChatRoom : AppCompatActivity(), MessageAdapter.MessageClickListener{
             REPLY_ID = selectedMessage.msgID
             exitSelectionMode()
         }
+        replyPreviewDialog.setOnClickListener {
+            REPLY_MODE = false
+            REPLY_ID = ""
+            replyPreviewDialog.visibility = View.GONE
+        }
     }
 
     @SuppressLint("SetTextI18n")
