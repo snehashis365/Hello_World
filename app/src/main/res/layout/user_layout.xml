@@ -54,12 +54,13 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
-            android:text="Status : "
+            android:text="Last Seen : "
             app:layout_constraintEnd_toStartOf="@+id/userStatus"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintHorizontal_chainStyle="packed"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/userDisplayName" />
+            app:layout_constraintTop_toBottomOf="@+id/userDisplayName"
+            tools:visibility="visible" />
 
         <TextView
             android:id="@+id/userStatus"

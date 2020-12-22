@@ -2,22 +2,20 @@ package com.snehashis.helloworld.fragments
 
 import android.os.Bundle
 import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
+import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.EventListener
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QueryDocumentSnapshot
 import com.snehashis.helloworld.HelloWorldUser
 import com.snehashis.helloworld.R
 import com.snehashis.helloworld.UserAdapter
-import kotlinx.android.synthetic.main.fragment_people.*
 import kotlinx.android.synthetic.main.fragment_people.view.*
 
 private const val KEY_USERS_PEOPLE = "Users"
@@ -74,7 +72,7 @@ class PeopleFragment : Fragment(), UserAdapter.UserClickListener {
 
     override fun onStart() {
         super.onStart()
-        usersCollection.addSnapshotListener{ value, error ->
+        usersCollection.orderBy(KEY_TIME_PEOPLE, Query.Direction.DESCENDING).addSnapshotListener{ value, error ->
             if (value != null) {
                 userList.clear()
                 for (document in value) {

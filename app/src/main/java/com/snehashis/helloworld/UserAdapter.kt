@@ -14,7 +14,9 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.transition.DrawableCrossFadeFactory
+import com.google.firebase.Timestamp
 import kotlinx.android.synthetic.main.user_layout.view.*
+import java.util.concurrent.TimeUnit
 
 @SuppressLint("SetTextI18n")
 class UserAdapter(private val listener : UserClickListener, private val userList : MutableList<HelloWorldUser>) : RecyclerView.Adapter<UserAdapter.UserViewHolder>() {
@@ -26,6 +28,7 @@ class UserAdapter(private val listener : UserClickListener, private val userList
         val userPhoto : ImageView = view.userPhoto
         val userDisplayName : TextView = view.userDisplayName
         val userStatus : TextView = view.userStatus
+        val userStatusLabel : TextView = view.userStatusLabel
 
         //Declaring the layouts as well if needed in future
         val userConstraintLayout : ConstraintLayout = view.userConstraintLayout
@@ -44,11 +47,13 @@ class UserAdapter(private val listener : UserClickListener, private val userList
         val user = userList[position]
         holder.userDisplayName.text = user.displayName
         if (user.isOnline){
+            holder.userStatusLabel.text = "Status : "
             holder.userStatus.text = "Online"
             holder.userStatus.setTextColor(holder.context.getColor(R.color.green))
         }
         else{
-            holder.userStatus.text = "Offline"
+            holder.userStatusLabel.text = "Last Seen "
+            holder.userStatus.text = generateLastSeen(user.lastSeen!!)
             holder.userStatus.setTextColor(holder.context.getColor(R.color.grey))
         }
         Glide.with(holder.context)
@@ -65,4 +70,17 @@ class UserAdapter(private val listener : UserClickListener, private val userList
 
     override fun getItemCount() = userList.size
 
+}
+fun generateLastSeen(timestamp: Timestamp) : String {
+    val currentTimeStamp = Timestamp.now()
+    val elapsedTime = currentTimeStamp.toDate().time - timestamp.toDate().time
+    val days = TimeUnit.MILLISECONDS.toDays(elapsedTime)
+    val hours = TimeUnit.MILLISECONDS.toHours(elapsedTime)
+    val minutes = TimeUnit.MILLISECONDS.toMinutes(elapsedTime)
+    return when {
+        days > 0 ->  "$days days ago"
+        hours > 0 ->  "$hours hours ago"
+        minutes > 0 ->  "$minutes minutes ago"
+        else -> "A few seconds ago"
+    }
 }
