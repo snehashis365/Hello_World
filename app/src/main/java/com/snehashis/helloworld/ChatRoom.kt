@@ -78,6 +78,7 @@ private var IMG_URI : Uri? = null
 private var SELECTION_MODE = false
 private var REPLY_MODE = false
 private var REPLY_ID = ""
+private var FIRST_DOCUMENT = true
 
 var messageList = mutableListOf<Message>()
 var selectedMessageList = mutableListOf<Message>()
@@ -253,7 +254,7 @@ class ChatRoom : AppCompatActivity(), MessageAdapter.MessageClickListener{
             REPLY_ID = selectedMessage.msgID
             exitSelectionMode()
         }
-        replyPreviewDialog.setOnClickListener {
+        captionReplyMsg.setOnClickListener {
             REPLY_MODE = false
             REPLY_ID = ""
             replyPreviewDialog.visibility = View.GONE
@@ -528,7 +529,7 @@ class ChatRoom : AppCompatActivity(), MessageAdapter.MessageClickListener{
     }
 
 
-    private fun buildMessage(document : QueryDocumentSnapshot): Message {
+    private fun buildMessage(document : QueryDocumentSnapshot, isNewM: Boolean): Message {
         val currentUser = ""+document.getString(KEY_USER)
         val currentMessage = ""+document.getString(KEY_MESSAGE)
         val timeStamp = document.getTimestamp(KEY_TIME)
@@ -559,7 +560,7 @@ class ChatRoom : AppCompatActivity(), MessageAdapter.MessageClickListener{
         }
         if (replyMessage == null)
             replyMessage = Message("Deleted", "Message", false, "",null, "","")
-        return Message(currentUser, currentMessage, isImagePresent, imageUri, timeStamp, uid, msgID, isMessageEdited, isMessageReply, replyMessage)
+        return Message(currentUser, currentMessage, isImagePresent, imageUri, timeStamp, uid, msgID, isMessageEdited, isMessageReply, replyMessage, isNew = isNewM)
     }
 
     @SuppressLint("SetTextI18n")
@@ -589,9 +590,10 @@ class ChatRoom : AppCompatActivity(), MessageAdapter.MessageClickListener{
                     //Plan to optimize this by not clearing the list in upcoming version
                     messageList.clear()
                     for (document in value) {
-                        val message = buildMessage(document)
+                        val message = buildMessage(document, !FIRST_DOCUMENT)
                         messageList.add(message)
                     }
+                    FIRST_DOCUMENT = false
                     chatBoxView.adapter?.notifyDataSetChanged()
                     chatBoxView.scrollToPosition(chatBoxView.adapter!!.itemCount - 1)
                 }

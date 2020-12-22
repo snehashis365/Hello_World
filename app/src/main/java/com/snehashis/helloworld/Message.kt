@@ -12,6 +12,6 @@ class Message(val user: String,
               var isEdited: Boolean = false,
               var isReply: Boolean = false,
               var replyingToMessage: Message? = null,
-              var isSelected: Boolean = false) {
+              var isSelected: Boolean = false, var isNew: Boolean = true) {
 
 }

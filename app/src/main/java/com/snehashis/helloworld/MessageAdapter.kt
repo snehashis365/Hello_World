@@ -146,11 +146,12 @@ class MessageAdapter(private val context: Context, private val messageList: Muta
         }
         else
             holder.replyLayout.visibility = View.GONE
-        if (position == messageList.size - 1) {
+        if (position == messageList.size - 1 && message.isNew) {
             holder.messageBody.animation =AnimationUtils.loadAnimation(context, when(currentUid){
                 message.uid ->  R.anim.outgoing_new_message_anim
                 else -> R.anim.incoming_new_message_anim
             })
+            messageList[position].isNew = false
         }
     }
 

@@ -43,8 +43,6 @@
             android:text="Snehashis Sarkar"
             android:textColor="@color/primaryTextColor"
             android:textSize="18sp"
-            app:autoSizeMaxTextSize="18sp"
-            app:autoSizeTextType="uniform"
             app:layout_constraintBottom_toTopOf="@+id/userStatus"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.5"
