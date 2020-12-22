@@ -48,7 +48,7 @@ import java.util.*
 import kotlin.collections.HashMap
 
 private const val MESSAGE_COLLECTION_KEY = "Messages"
-private const val ONLINE_COLLECTION_KEY = "Active_Users"
+private const val ONLINE_COLLECTION_KEY = "Users"
 private const val TYPING_COLLECTION_KEY = "User_Typing"
 private const val STORAGE_IMAGE_KEY = "images"
 private const val KEY_USER = "user"
@@ -575,11 +575,10 @@ class ChatRoom : AppCompatActivity(), MessageAdapter.MessageClickListener{
             onlineUsersCollection.document(user.uid).set(map)
             //Storing User info to be retrieved in PeopleFragment.kt
             val currentUserDocument = fireStoreReference.collection("Users").document(user.uid)
-            map[KEY_NAME_PEOPLE] = user.displayName!!
-            map[KEY_PHOTO_PEOPLE] = user.photoUrl.toString()
-            map[KEY_ONLINE_PEOPLE] = true
-            map[KEY_TIME_PEOPLE] = Timestamp.now()
-            currentUserDocument.set(map)
+            currentUserDocument.update(KEY_NAME_PEOPLE, user.displayName!!)
+            currentUserDocument.update(KEY_PHOTO_PEOPLE, user.photoUrl.toString())
+            currentUserDocument.update(KEY_ONLINE_PEOPLE, true)
+            currentUserDocument.update(KEY_TIME_PEOPLE,Timestamp.now())
         }
         messageCollection.orderBy(KEY_TIME, Query.Direction.ASCENDING).addSnapshotListener(this,EventListener { value, error ->
                 if (error != null){
@@ -599,15 +598,16 @@ class ChatRoom : AppCompatActivity(), MessageAdapter.MessageClickListener{
                 }
             })
         onlineUsersCollection.addSnapshotListener(this, EventListener { value, error ->
-            if (error != null){
-                Log.e("SnapshotListener Error","Exception", error)
+            if (error != null) {
+                Log.e("SnapshotListener Error", "Exception", error)
                 return@EventListener
-            }
-            else if (value != null){
+            } else if (value != null) {
                 var count = -1
-                for(document in value)
-                    count++
-                onlineUserCount.text = when(count){
+                for (document in value) {
+                    if (document.getBoolean(KEY_ONLINE_PEOPLE)!!)
+                        count++
+                }
+                onlineUserCount.text = when (count) {
                     1 -> "You are alone"
                     else -> "Online : $count"
                 }
@@ -650,7 +650,7 @@ class ChatRoom : AppCompatActivity(), MessageAdapter.MessageClickListener{
 
     override fun onResume() {
         FIRST_DOCUMENT = true
-        updateStatus(false)
+        updateStatus(true)
         super.onResume()
     }
 
@@ -659,7 +659,7 @@ class ChatRoom : AppCompatActivity(), MessageAdapter.MessageClickListener{
         val user = mAuth.currentUser
         onlineUsersCollection.document(user!!.uid).delete()
         typingUsersCollection.document(user.uid).delete()
-        updateStatus(true)
+        updateStatus(false)
         if (uploadTask != null){
             if (uploadTask!!.isInProgress)
                 uploadTask!!.cancel()

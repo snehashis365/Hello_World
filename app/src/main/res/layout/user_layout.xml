@@ -8,13 +8,15 @@
     android:layout_weight="1"
     android:orientation="vertical"
     android:padding="5dp"
+    android:transitionGroup="true"
     tools:ignore="ContentDescription,HardcodedText">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/userConstraintLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/input_bg">
+        android:background="@drawable/input_bg"
+        android:transitionGroup="false">
 
         <ImageView
             android:id="@+id/userPhoto"

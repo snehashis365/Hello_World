@@ -12,8 +12,7 @@ class BottomNavigation : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_bottom_navigation)
-
-        val userFragment = UserFragment()
+        val userFragment = UserFragment.newInstance()
         val aboutFragment = AboutFragment()
         val peopleFragment = PeopleFragment()
 

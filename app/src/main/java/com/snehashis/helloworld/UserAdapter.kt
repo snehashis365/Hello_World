@@ -9,6 +9,7 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.view.ViewCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
@@ -35,7 +36,7 @@ class UserAdapter(private val listener : UserClickListener, private val userList
         val userLayoutHolder : LinearLayout = view.userLayoutHolder
     }
     interface UserClickListener {
-        fun onUserClick(position : Int)
+        fun onUserClick(position : Int, clickedUser: HelloWorldUser, clickedUserView: LinearLayout)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): UserViewHolder {
@@ -63,8 +64,9 @@ class UserAdapter(private val listener : UserClickListener, private val userList
             .diskCacheStrategy(DiskCacheStrategy.ALL)
             .transition(DrawableTransitionOptions.withCrossFade(DrawableCrossFadeFactory.Builder().setCrossFadeEnabled(true).build()))
             .into(holder.userPhoto)
-        holder.userLayoutHolder.setOnClickListener {
-            userClickListener.onUserClick(position)
+        ViewCompat.setTransitionName(holder.userPhoto, user.uid)
+        holder.itemView.setOnClickListener {
+            userClickListener.onUserClick(position, user, holder.userLayoutHolder)
         }
     }
 
