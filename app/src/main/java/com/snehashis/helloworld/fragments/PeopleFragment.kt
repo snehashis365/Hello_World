@@ -1,6 +1,7 @@
 package com.snehashis.helloworld.fragments
 
 import android.os.Bundle
+import android.os.Handler
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -120,7 +121,9 @@ class PeopleFragment : Fragment(), UserAdapter.UserClickListener {
     }
 
     override fun onResume() {
-        updateStatus(true)
+        Handler().postDelayed({
+            updateStatus(true)
+        },1000)
         super.onResume()
     }
 

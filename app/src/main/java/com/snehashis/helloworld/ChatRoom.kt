@@ -12,6 +12,7 @@ import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.CountDownTimer
+import android.os.Handler
 import android.provider.MediaStore
 import android.text.Editable
 import android.text.TextWatcher
@@ -570,15 +571,14 @@ class ChatRoom : AppCompatActivity(), MessageAdapter.MessageClickListener{
         if(user == null)
             finish()
         else {
-            val map = HashMap<String,Any>()
-            map["uid"] = user.uid
-            onlineUsersCollection.document(user.uid).set(map)
             //Storing User info to be retrieved in PeopleFragment.kt
             val currentUserDocument = fireStoreReference.collection("Users").document(user.uid)
+
             currentUserDocument.update(KEY_NAME_PEOPLE, user.displayName!!)
             currentUserDocument.update(KEY_PHOTO_PEOPLE, user.photoUrl.toString())
             currentUserDocument.update(KEY_ONLINE_PEOPLE, true)
             currentUserDocument.update(KEY_TIME_PEOPLE,Timestamp.now())
+            currentUserDocument.update(KEY_UID_PEOPLE, user.uid)
         }
         messageCollection.orderBy(KEY_TIME, Query.Direction.ASCENDING).addSnapshotListener(this,EventListener { value, error ->
                 if (error != null){
@@ -604,8 +604,10 @@ class ChatRoom : AppCompatActivity(), MessageAdapter.MessageClickListener{
             } else if (value != null) {
                 var count = -1
                 for (document in value) {
-                    if (document.getBoolean(KEY_ONLINE_PEOPLE)!!)
-                        count++
+                    if (document.getBoolean(KEY_ONLINE_PEOPLE) != null){
+                        if (document.getBoolean(KEY_ONLINE_PEOPLE)!!) count++
+                    }
+
                 }
                 onlineUserCount.text = when (count) {
                     1 -> "You are alone"
@@ -650,15 +652,16 @@ class ChatRoom : AppCompatActivity(), MessageAdapter.MessageClickListener{
 
     override fun onResume() {
         FIRST_DOCUMENT = true
-        updateStatus(true)
+        Handler().postDelayed({
+            updateStatus(true)
+        },1000)
         super.onResume()
     }
 
     override fun onStop() {
         exitSelectionMode()
         val user = mAuth.currentUser
-        onlineUsersCollection.document(user!!.uid).delete()
-        typingUsersCollection.document(user.uid).delete()
+        typingUsersCollection.document(user!!.uid).delete()
         updateStatus(false)
         if (uploadTask != null){
             if (uploadTask!!.isInProgress)
