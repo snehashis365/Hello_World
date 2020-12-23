@@ -41,6 +41,7 @@ import com.google.firebase.firestore.QueryDocumentSnapshot
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import com.google.firebase.storage.UploadTask
+import com.snehashis.helloworld.services.*
 import kotlinx.android.synthetic.main.activity_chat_room.*
 import kotlinx.android.synthetic.main.dialog_edit_text.view.*
 import kotlinx.android.synthetic.main.dialog_progress.view.*
@@ -71,6 +72,7 @@ private const val KEY_TIME_PEOPLE = "lastSeen"
 private const val KEY_BIO_PEOPLE = "bio"
 private const val KEY_UID_PEOPLE = "uid"
 
+private const val KEY_USER_NOTIFICATION = "Notifications"
 
 private const val IMAGE_INTENT = 1001
 const val MENU_IEM_INTENT = "MENU_ITEM"
@@ -79,10 +81,12 @@ private var IMG_URI : Uri? = null
 private var SELECTION_MODE = false
 private var REPLY_MODE = false
 private var REPLY_ID = ""
+private var REPLY_TO_UID =""
 private var FIRST_DOCUMENT = true
 
 var messageList = mutableListOf<Message>()
 var selectedMessageList = mutableListOf<Message>()
+var uidList = mutableListOf<String>()
 
 private lateinit var mAuth : FirebaseAuth
 private val fireStoreReference : FirebaseFirestore = FirebaseFirestore.getInstance()
@@ -253,12 +257,20 @@ class ChatRoom : AppCompatActivity(), MessageAdapter.MessageClickListener{
                     .into(selectedReplyImagePreview)
             }
             REPLY_ID = selectedMessage.msgID
+            REPLY_TO_UID = selectedMessage.uid
             exitSelectionMode()
         }
         captionReplyMsg.setOnClickListener {
             REPLY_MODE = false
             REPLY_ID = ""
+            REPLY_TO_UID = ""
             replyPreviewDialog.visibility = View.GONE
+        }
+    }
+
+    private fun sendNotificationDocument(map : HashMap<String, Any>){
+        for (USER_UID in uidList){
+            usersCollection.document(USER_UID).collection(KEY_USER_NOTIFICATION).document().set(map)
         }
     }
 
@@ -267,22 +279,32 @@ class ChatRoom : AppCompatActivity(), MessageAdapter.MessageClickListener{
         if (messageInput.text.isNotBlank() || IMG_URI != null){
             sendButton.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
             val map = HashMap<String, Any>()
+            val notificationMap = HashMap<String, Any>()
+            notificationMap[NOTIFICATION_KEY_NEW] = true
             val currentMessageReference = messageCollection.document()
             //Basic fields setup
             map[KEY_USER] = mAuth.currentUser!!.displayName!!
+            notificationMap[NOTIFICATION_KEY_SENDER] = mAuth.currentUser!!.displayName!!
             map[KEY_MESSAGE] = "" + messageInput.text.toString().trim()
+            notificationMap[NOTIFICATION_KEY_MESSAGE] = "" + messageInput.text.toString().trim()
             map[KEY_TIME] = Timestamp.now()
+            notificationMap[NOTIFICATION_KEY_TIME] = Timestamp.now()
             map[KEY_UID] = mAuth.currentUser!!.uid
             //Setup for Replying
             if (REPLY_MODE){
                 map[KEY_REPLY] = true
+                notificationMap[NOTIFICATION_IS_REPLY] = true
                 map[KEY_REPLY_ID] = REPLY_ID
+                notificationMap[NOTIFICATION_REPLY_UID] = REPLY_TO_UID
                 REPLY_MODE = false
                 REPLY_ID = ""
+                REPLY_TO_UID = ""
                 replyPreviewDialog.visibility = View.GONE
             }
-            else
+            else {
                 map[KEY_REPLY] = false
+                notificationMap[NOTIFICATION_IS_REPLY] = false
+            }
             //Setup for image in message
             if (imagePreview.isVisible && IMG_URI != null){
                 val alertDialog = MaterialAlertDialogBuilder(this).create()
@@ -307,8 +329,10 @@ class ChatRoom : AppCompatActivity(), MessageAdapter.MessageClickListener{
                     progressDialog.uploadingLabel.text = "Fetching link..."
                     currentImageReference.downloadUrl.addOnSuccessListener { uri ->
                         map[KEY_IMAGE] = true
+                        notificationMap[NOTIFICATION_IS_IMAGE] = true
                         map[KEY_IMAGE_URI] = uri.toString()
                         currentMessageReference.set(map)
+                        sendNotificationDocument(notificationMap)
                         captionMsg.performClick()
                         messageInput.text.clear()
                         alertDialog.dismiss()
@@ -332,7 +356,9 @@ class ChatRoom : AppCompatActivity(), MessageAdapter.MessageClickListener{
             }
             else {
                 map[KEY_IMAGE] = false
+                notificationMap[NOTIFICATION_IS_IMAGE] = false
                 currentMessageReference.set(map)
+                sendNotificationDocument(notificationMap)
                 captionMsg.performClick()
                 messageInput.text.clear()
             }
@@ -643,6 +669,27 @@ class ChatRoom : AppCompatActivity(), MessageAdapter.MessageClickListener{
                 }
             }
         })
+
+        usersCollection.addSnapshotListener { value, error ->
+            if (error != null){
+                Log.e("SnapshotListener Error","Exception", error)
+            }
+            else if (value != null){
+                uidList.clear()
+                for (document in value){
+                    if (document.id != "Default" && document.id != user!!.uid)
+                        uidList.add(document.id)
+                }
+            }
+        }
+        val userNotificationCollection = usersCollection.document(user!!.uid).collection(KEY_USER_NOTIFICATION)
+        userNotificationCollection.addSnapshotListener (this, EventListener {value, error ->
+            if (value != null){
+                for (document in value){
+                    userNotificationCollection.document(document.id).update(NOTIFICATION_KEY_NEW, false)
+                }
+            }
+        })
     }
 
     private fun updateStatus(isOnline : Boolean){
@@ -650,12 +697,32 @@ class ChatRoom : AppCompatActivity(), MessageAdapter.MessageClickListener{
         usersCollection.document(mAuth.currentUser!!.uid).update(KEY_TIME_PEOPLE, Timestamp.now())
     }
 
+    private fun performNotificationServiceAction(action: Int){
+        Intent(this, NotificationService::class.java).also {
+            it.putExtra("Action", action)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                Log.e("ChatRoom", "Starting Service in >=26 Mode")
+                startForegroundService(it)
+            }
+            else{
+                Log.e("ChatRoom", "Starting the service in < 26 Mode")
+                startService(it)
+            }
+        }
+    }
+
     override fun onResume() {
         FIRST_DOCUMENT = true
         Handler().postDelayed({
             updateStatus(true)
         },1000)
+        performNotificationServiceAction(STOP_NOTIFICATION_SERVICE)
         super.onResume()
+    }
+
+    override fun onPause() {
+        performNotificationServiceAction(START_NOTIFICATION_SERVICE)
+        super.onPause()
     }
 
     override fun onStop() {
