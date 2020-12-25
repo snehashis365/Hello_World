@@ -28,7 +28,7 @@
 
         <TextView
             android:id="@+id/userNameLabel"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingLeft="10dp"
             android:paddingTop="3dp"
@@ -39,7 +39,7 @@
 
         <TextView
             android:id="@+id/editLabel"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="1dp"
             android:paddingLeft="10dp"
