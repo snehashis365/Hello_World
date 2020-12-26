@@ -16,141 +16,168 @@
     android:paddingBottom="2dp"
     tools:ignore="HardcodedText,ContentDescription">
 
-    <LinearLayout
-        android:id="@+id/messageBody"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/messageConstraint"
         android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:animateLayoutChanges="true"
-        android:background="@drawable/chat_incoming"
-        android:backgroundTintMode="multiply"
-        android:orientation="vertical"
-        tools:ignore="UselessParent">
+        android:layout_height="wrap_content">
 
         <TextView
             android:id="@+id/userNameLabel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:paddingLeft="10dp"
-            android:paddingTop="3dp"
-            android:paddingRight="10dp"
+            android:layout_marginStart="4dp"
+            android:layout_marginTop="4dp"
+            android:elevation="3dp"
             android:text="User"
             android:textColor="@color/primaryTextColor"
-            android:textSize="16sp" />
-
-        <TextView
-            android:id="@+id/editLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="1dp"
-            android:paddingLeft="10dp"
-            android:paddingTop="3dp"
-            android:paddingRight="10dp"
-            android:text="Edited"
-            android:textSize="14sp"
-            android:textStyle="italic" />
-
-        <LinearLayout
-            android:id="@+id/replyLayout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="5dp"
-            android:background="@drawable/reply_bg"
-            android:clickable="true"
-            android:focusable="true"
-            android:orientation="horizontal"
-            android:paddingTop="3dp"
-            android:paddingEnd="8dp"
-            android:paddingBottom="3dp">
-
-            <View
-                android:id="@+id/view"
-                android:layout_width="4dp"
-                android:layout_height="match_parent"
-                android:layout_marginStart="2dp"
-                android:layout_marginEnd="2dp"
-                android:background="@color/secondaryDarkColor" />
-
-            <ImageView
-                android:id="@+id/replyImage"
-                android:layout_width="40dp"
-                android:layout_height="match_parent"
-                android:layout_gravity="center"
-                app:srcCompat="@drawable/ic_image"
-                tools:visibility="visible" />
-
-            <LinearLayout
-                android:id="@+id/replyMessagePreview"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginStart="3dp"
-                android:layout_marginTop="1dp"
-                android:layout_marginBottom="1dp"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/replyUser"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:singleLine="true"
-                    android:text="User 2"
-                    android:textColor="#CCC6A700"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/replyMessage"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:singleLine="true"
-                    android:text="Lorem ipsum dolor sit amet, consectrtur...."
-                    android:textColor="#D9FFFFFF"
-                    android:textSize="12sp" />
-            </LinearLayout>
-        </LinearLayout>
+            android:textSize="16sp"
+            app:layout_constraintStart_toEndOf="@+id/messageProfileImage"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <ImageView
-            android:id="@+id/attachedImage"
-            android:layout_width="300dp"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:adjustViewBounds="true"
-            android:maxHeight="300dp"
-            android:padding="8dp"
-            android:scaleType="centerCrop"
-            tools:ignore="ContentDescription"
-            tools:srcCompat="@tools:sample/backgrounds/scenic" />
+            android:id="@+id/messageProfileImage"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:elevation="3dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:srcCompat="@tools:sample/avatars"
+            tools:visibility="visible" />
 
-        <TextView
-            android:id="@+id/textMessage"
-            android:layout_width="wrap_content"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:autoLink="web|email"
-            android:linksClickable="true"
-            android:maxWidth="300dp"
-            android:paddingLeft="10dp"
-            android:paddingTop="3dp"
-            android:paddingRight="10dp"
-            android:paddingBottom="5dp"
-            android:text="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque et pharetra urna. Praesent fringilla condimentum nisl vitae cursus. Sed interdum finibus ipsum."
-            android:textColor="@color/white"
-            android:textIsSelectable="true"
-            android:textSize="15sp" />
-
-        <TextView
-            android:id="@+id/time"
+        <LinearLayout
+            android:id="@+id/messageBody"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="end"
-            android:paddingStart="15dp"
-            android:paddingEnd="15dp"
-            android:paddingBottom="5dp"
-            android:text="22:10"
-            android:textColor="@color/secondaryDarkColor"
-            android:textSize="10sp"
-            tools:ignore="SmallSp" />
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="4dp"
+            android:animateLayoutChanges="true"
+            android:background="@drawable/chat_incoming"
+            android:backgroundTint="@color/amber_a400"
+            android:backgroundTintMode="add"
+            android:elevation="3dp"
+            android:orientation="vertical"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@+id/messageProfileImage"
+            app:layout_constraintTop_toBottomOf="@+id/messageProfileImage"
+            tools:ignore="UselessParent">
 
-    </LinearLayout>
+            <TextView
+                android:id="@+id/editLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="1dp"
+                android:paddingLeft="10dp"
+                android:paddingTop="3dp"
+                android:paddingRight="10dp"
+                android:text="Edited"
+                android:textColor="#D9FFFFFF"
+                android:textSize="12sp"
+                android:textStyle="bold|italic" />
+
+            <LinearLayout
+                android:id="@+id/replyLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="5dp"
+                android:background="@drawable/reply_bg"
+                android:clickable="true"
+                android:focusable="true"
+                android:orientation="horizontal"
+                android:paddingTop="3dp"
+                android:paddingEnd="8dp"
+                android:paddingBottom="3dp">
+
+                <View
+                    android:id="@+id/view"
+                    android:layout_width="4dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="1dp"
+                    android:layout_marginEnd="3dp"
+                    android:background="@drawable/button_bg" />
+
+                <ImageView
+                    android:id="@+id/replyImage"
+                    android:layout_width="40dp"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center"
+                    app:srcCompat="@drawable/ic_image"
+                    tools:visibility="visible" />
+
+                <LinearLayout
+                    android:id="@+id/replyMessagePreview"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginStart="3dp"
+                    android:layout_marginTop="1dp"
+                    android:layout_marginBottom="1dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/replyUser"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:singleLine="true"
+                        android:text="User 2"
+                        android:textColor="#CCC6A700"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/replyMessage"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:singleLine="true"
+                        android:text="Lorem ipsum dolor sit amet, consectrtur...."
+                        android:textColor="#D9FFFFFF"
+                        android:textSize="12sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <ImageView
+                android:id="@+id/attachedImage"
+                android:layout_width="260dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:adjustViewBounds="true"
+                android:maxHeight="260dp"
+                android:padding="8dp"
+                android:scaleType="centerCrop"
+                tools:ignore="ContentDescription"
+                tools:srcCompat="@tools:sample/backgrounds/scenic" />
+
+            <TextView
+                android:id="@+id/textMessage"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:autoLink="web|email"
+                android:linksClickable="true"
+                android:maxWidth="260dp"
+                android:paddingLeft="10dp"
+                android:paddingTop="3dp"
+                android:paddingRight="10dp"
+                android:paddingBottom="5dp"
+                android:text="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque et pharetra urna. Praesent fringilla condimentum nisl vitae cursus. Sed interdum finibus ipsum."
+                android:textColor="@color/white"
+                android:textIsSelectable="true"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:paddingStart="15dp"
+                android:paddingEnd="15dp"
+                android:paddingBottom="5dp"
+                android:text="22:10"
+                android:textColor="@color/white"
+                android:textSize="10sp"
+                tools:ignore="SmallSp" />
+
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </LinearLayout>

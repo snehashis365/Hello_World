@@ -98,7 +98,6 @@ private var FIRST_DOCUMENT = true
 
 var messageList = mutableListOf<Message>()
 var selectedMessageList = mutableListOf<Message>()
-var uidList = mutableListOf<String>()
 
 private lateinit var mAuth : FirebaseAuth
 private val fireStoreReference : FirebaseFirestore = FirebaseFirestore.getInstance()
@@ -345,6 +344,7 @@ class ChatRoom : AppCompatActivity(), MessageAdapter.MessageClickListener{
             map[KEY_TIME] = Timestamp.now()
             notificationBody.put("time",Timestamp.now().toDate().time)
             map[KEY_UID] = mAuth.currentUser!!.uid
+            notificationBody.put("fromUID", mAuth.currentUser!!.uid)
             //Setup for Replying
             notificationBody.put("isReply", REPLY_MODE)
             if (REPLY_MODE){
@@ -359,7 +359,6 @@ class ChatRoom : AppCompatActivity(), MessageAdapter.MessageClickListener{
             else {
                 map[KEY_REPLY] = false
             }
-            notificationBody.put("directReply", 0)
             notification.put("to", topic)
             notification.put("data", notificationBody)
             //Setup for image in message
@@ -613,12 +612,13 @@ class ChatRoom : AppCompatActivity(), MessageAdapter.MessageClickListener{
     }
 
 
-    private fun buildMessage(document : QueryDocumentSnapshot, isNewM: Boolean): Message {
+    private fun buildMessage(document : QueryDocumentSnapshot, isNewM: Boolean, lastUID : String): Message {
         val currentUser = ""+document.getString(KEY_USER)
         val currentMessage = ""+document.getString(KEY_MESSAGE)
         val timeStamp = document.getTimestamp(KEY_TIME)
         val uid = ""+document.getString(KEY_UID)
         val msgID = document.id
+        val loadMeta = (uid != lastUID) && (uid != mAuth.currentUser!!.uid)
         var isImagePresent = document.getBoolean(KEY_IMAGE)
         var imageUri = ""
         if (isImagePresent == null)
@@ -644,7 +644,7 @@ class ChatRoom : AppCompatActivity(), MessageAdapter.MessageClickListener{
         }
         if (replyMessage == null)
             replyMessage = Message("Deleted", "Message", false, "",null, "","")
-        return Message(currentUser, currentMessage, isImagePresent, imageUri, timeStamp, uid, msgID, isMessageEdited, isMessageReply, replyMessage, isNew = isNewM)
+        return Message(currentUser, currentMessage, isImagePresent, imageUri, timeStamp, uid, msgID, isMessageEdited, isMessageReply, replyMessage, isNew = isNewM, loadMeta = loadMeta)
     }
 
     @SuppressLint("SetTextI18n")
@@ -671,8 +671,10 @@ class ChatRoom : AppCompatActivity(), MessageAdapter.MessageClickListener{
                 else if (value != null){
                     //Plan to optimize this by not clearing the list in upcoming version
                     messageList.clear()
+                    var lastUID = ""
                     for (document in value) {
-                        val message = buildMessage(document, !FIRST_DOCUMENT)
+                        val message = buildMessage(document, !FIRST_DOCUMENT, lastUID)
+                        lastUID = ""+document.getString(KEY_UID)
                         messageList.add(message)
                     }
                     FIRST_DOCUMENT = false

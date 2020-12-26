@@ -11,25 +11,24 @@
         android:id="@+id/frameLayout"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:animateLayoutChanges="false"
-        app:layout_constraintBottom_toTopOf="@+id/bottomNavigationView"
+        android:animateLayoutChanges="true"
+        app:layout_constraintBottom_toTopOf="@+id/expandable_bottom_bar"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottomNavigationView"
-        android:layout_width="match_parent"
+    <github.com.st235.lib_expandablebottombar.ExpandableBottomBar
+        android:id="@+id/expandable_bottom_bar"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:animateLayoutChanges="true"
-        android:background="@color/secondaryColor"
-        app:elevation="3dp"
-        app:itemHorizontalTranslationEnabled="true"
-        app:itemIconSize="28dp"
-        app:itemRippleColor="@color/secondaryLightColor"
+        app:exb_backgroundColor="@color/primaryColor"
+        app:exb_itemInactiveColor="@color/primaryLightColor"
+        app:exb_itemStyle="normal"
+        app:exb_item_vertical_margin="10dp"
+        app:exb_items="@menu/bottom_navigation_menu"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:menu="@menu/bottom_navigation_menu" />
+        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

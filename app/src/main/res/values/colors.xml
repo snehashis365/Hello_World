@@ -15,4 +15,22 @@
     <color name="ucrop_color_toolbar">@color/secondaryColor</color>
     <color name="ucrop_color_statusbar">@color/secondaryDarkColor</color>
     <color name="ucrop_color_widget_active">@color/secondaryColor</color>
+    //Colors for array list
+    <color name="red_a400">#ff1744</color>
+    <color name="pink_a400">#f50057</color>
+    <color name="purple_a400">#d500f9</color>
+    <color name="deepPurple_a400">#651fff</color>
+    <color name="indigo_a400">#3d5afe</color>
+    <color name="blue_a400">#2979ff</color>
+    <color name="lightBlue_a400">#00b0ff</color>
+    <color name="cyan_a400">#00e5ff</color>
+    <color name="teal_a400">#1de9b6</color>
+    <color name="green_a400">#00e676</color>
+    <color name="lightGreen_a400">#76ff03</color>
+    <color name="lime_a400">#c6ff00</color>
+    <color name="yellow_a400">#ffea00</color>
+    <color name="amber_a400">#ffc400</color>
+    <color name="orange_a400">#ff9100</color>
+    <color name="deepOrange_a400">#ff3d00</color>
+
 </resources>

@@ -1,11 +1,13 @@
 package com.snehashis.helloworld.notification
 
+import android.app.NotificationManager
 import android.app.RemoteInput
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
 import android.widget.Toast
+import androidx.core.app.NotificationCompat
 import com.android.volley.RequestQueue
 import com.android.volley.Response
 import com.android.volley.toolbox.JsonObjectRequest
@@ -29,16 +31,30 @@ class NotificationReplyReceiver : BroadcastReceiver() {
         val requestQueue: RequestQueue by lazy {
             Volley.newRequestQueue(context.applicationContext)
         }
-        val currentUser = FirebaseAuth.getInstance().currentUser
-        if (currentUser != null){
-            val userName = currentUser.displayName!!
-            val uid = currentUser.uid
-            val currentTime = Timestamp.now()
-            val bundle = RemoteInput.getResultsFromIntent(intent)
-            if (bundle != null){
-                val replyMessage = bundle.getCharSequence("chat_room_reply").toString()
-                if (replyMessage.isNotBlank())
-                    sendChatRoomMessage(context, userName, uid, currentTime, replyMessage, requestQueue)
+        val isDismissed = intent.getBooleanExtra("isDismissed", false)
+        if (isDismissed){
+            val currentStyle = restoreMessagingStyle(context, notificationChatRoomID)
+            currentStyle?.messages?.clear()
+        }
+        else {
+            val currentUser = FirebaseAuth.getInstance().currentUser
+            if (currentUser != null) {
+                val userName = currentUser.displayName!!
+                val uid = currentUser.uid
+                val currentTime = Timestamp.now()
+                val bundle = RemoteInput.getResultsFromIntent(intent)
+                if (bundle != null) {
+                    val replyMessage = bundle.getCharSequence("chat_room_reply").toString()
+                    if (replyMessage.isNotBlank())
+                        sendChatRoomMessage(
+                            context,
+                            userName,
+                            uid,
+                            currentTime,
+                            replyMessage,
+                            requestQueue
+                        )
+                }
             }
         }
     }
@@ -71,9 +87,9 @@ class NotificationReplyReceiver : BroadcastReceiver() {
         notificationBody.put("title",userName)
         notificationBody.put("message",replyMessage)
         notificationBody.put("time",currentTime.toDate().time)
-        notificationBody.put("isReply",true)
-        notificationBody.put("replyUID", uid)
-        notificationBody.put("directReply", 1)
+        notificationBody.put("isReply",false)
+        notificationBody.put("replyUID", "direct_reply")
+        notificationBody.put("fromUID", uid)
         notification.put("to", topic)
         notification.put("data", notificationBody)
 
@@ -106,5 +122,13 @@ class NotificationReplyReceiver : BroadcastReceiver() {
             }
         }
         requestQueue.add(jsonObjectRequest)
+    }
+
+    private fun restoreMessagingStyle(context: Context, notificationId: Int): NotificationCompat.MessagingStyle? {
+        return (context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
+            .activeNotifications
+            .find { it.id == notificationId }
+            ?.notification
+            ?.let { NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification(it) }
     }
 }

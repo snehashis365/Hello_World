@@ -43,11 +43,12 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="32dp"
             android:layout_marginEnd="32dp"
+            android:layout_marginBottom="32dp"
             android:gravity="center"
             android:padding="8dp"
             android:text="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque et pharetra urna. Praesent fringilla condimentum nisl vitae cursus. Sed interdum finibus ipsum."
             android:textSize="16sp"
-            app:layout_constraintBottom_toTopOf="@+id/version_layout"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/app_name"
@@ -64,7 +65,8 @@
             android:padding="8dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent">
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/app_about">
 
             <TextView
                 android:id="@+id/version_label"

@@ -2,11 +2,11 @@ package com.snehashis.helloworld
 
 import android.annotation.SuppressLint
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
@@ -45,7 +45,11 @@ class MainActivity : AppCompatActivity() {
             googleSignInButton.text = "Welcome Back"
             googleSignInButton.setCompoundDrawablesRelativeWithIntrinsicBounds(0,0,0,0)
             googleSignInButton.isClickable = false
+            googleSignInButton.isFocusable = false
+            googleSignInButton.isEnabled = false
             btn_login.isClickable = false
+            btn_login.isFocusable = false
+            btn_login.isEnabled = false
             btn_login.background = null
             btn_login.setTextColor(getColor(R.color.primaryTextColor))
             btn_login.text = "Just a second"

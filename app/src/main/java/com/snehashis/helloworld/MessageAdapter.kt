@@ -2,6 +2,7 @@ package com.snehashis.helloworld
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.res.ColorStateList
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -18,12 +19,16 @@ import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.transition.DrawableCrossFadeFactory
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.android.synthetic.main.message_layout.view.*
 import java.util.*
 
 
 class MessageAdapter(private val context: Context, private val messageList: MutableList<Message>) : RecyclerView.Adapter<MessageAdapter.MessageViewHolder>() {
 
+    private val fireStoreReference : FirebaseFirestore = FirebaseFirestore.getInstance()
+    private val usersCollection = fireStoreReference.collection("Users")
+    private var lastColor : ColorStateList? = ContextCompat.getColorStateList(context, R.color.amber_a400)
     private val messageClickListener = context as MessageClickListener
     class MessageViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val userNameLabel : TextView = view.userNameLabel
@@ -31,6 +36,7 @@ class MessageAdapter(private val context: Context, private val messageList: Muta
         val textMessage : TextView = view.textMessage
         val time : TextView = view.time
         val messageBody : LinearLayout = view.messageBody
+        val messageProfileImage : ImageView = view.messageProfileImage
         val messageBodyHolder : LinearLayout = view.messageBodyHolder
         val editLabel : TextView = view.editLabel
         val replyLayout : LinearLayout = view.replyLayout
@@ -53,21 +59,32 @@ class MessageAdapter(private val context: Context, private val messageList: Muta
     override fun onBindViewHolder(holder: MessageViewHolder, position: Int) {
         val message = messageList[position]
         val currentUid = FirebaseAuth.getInstance().currentUser!!.uid
-        if (currentUid != message.uid) {
-            holder.userNameLabel.visibility = View.VISIBLE
-            holder.userNameLabel.text = message.user
-            holder.messageBody.background = ContextCompat.getDrawable(context, R.drawable.chat_incoming)
-            holder.userNameLabel.gravity = Gravity.START
-            holder.messageBodyHolder.gravity = Gravity.START
+        holder.userNameLabel.text = message.user
+        if (!message.loadMeta){
+            holder.messageBody.backgroundTintList = lastColor
+            holder.messageProfileImage.visibility = View.GONE
+            holder.userNameLabel.visibility = View.GONE
+            Glide.with(context).clear(holder.messageProfileImage)
+            holder.messageProfileImage.setImageDrawable(null)
         }
         else {
-            holder.userNameLabel.visibility = View.GONE
-            holder.messageBody.background = ContextCompat.getDrawable(context, R.drawable.chat_outgoing)
-            holder.userNameLabel.gravity = Gravity.END
-            holder.messageBodyHolder.gravity = Gravity.END
+            lastColor = getRandomColor(context)
+            holder.messageBody.backgroundTintList = lastColor
+            holder.messageProfileImage.visibility = View.VISIBLE
+            holder.userNameLabel.visibility = View.VISIBLE
+            val dpUri = usersCollection.document(message.uid).get()
+            dpUri.addOnSuccessListener {
+                Glide.with(context)
+                    .load(it.getString("photoUri"))
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .placeholder(R.drawable.ic_user)
+                    .transition(DrawableTransitionOptions.withCrossFade(DrawableCrossFadeFactory.Builder().setCrossFadeEnabled(true).build()))
+                    .circleCrop()
+                    .into(holder.messageProfileImage)
+            }
         }
+        holder.messageBodyHolder.gravity = if (currentUid != message.uid) Gravity.START else Gravity.END
         if (message.isImage) {
-
             Glide.with(context)
                     .load(message.imageUri)
                     .placeholder(R.drawable.ic_image_search)
@@ -156,6 +173,23 @@ class MessageAdapter(private val context: Context, private val messageList: Muta
     }
 
     override fun getItemCount() = messageList.size
+}
+
+fun getRandomColor(context: Context) : ColorStateList?{
+    val a400Colors = mutableListOf<ColorStateList?>()
+    a400Colors.add(ContextCompat.getColorStateList(context, R.color.red_a400))
+    a400Colors.add(ContextCompat.getColorStateList(context, R.color.pink_a400))
+    a400Colors.add(ContextCompat.getColorStateList(context, R.color.purple_a400))
+    a400Colors.add(ContextCompat.getColorStateList(context, R.color.deepPurple_a400))
+    a400Colors.add(ContextCompat.getColorStateList(context, R.color.indigo_a400))
+    a400Colors.add(ContextCompat.getColorStateList(context, R.color.blue_a400))
+    a400Colors.add(ContextCompat.getColorStateList(context, R.color.lightBlue_a400))
+    a400Colors.add(ContextCompat.getColorStateList(context, R.color.teal_a400))
+    a400Colors.add(ContextCompat.getColorStateList(context, R.color.green_a400))
+    a400Colors.add(ContextCompat.getColorStateList(context, R.color.amber_a400))
+    a400Colors.add(ContextCompat.getColorStateList(context, R.color.orange_a400))
+    a400Colors.add(ContextCompat.getColorStateList(context, R.color.deepOrange_a400))
+    return a400Colors.random()
 }
 
 fun formatTimeStamp (timestamp: Timestamp?) : String {

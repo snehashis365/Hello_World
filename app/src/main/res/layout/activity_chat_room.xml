@@ -5,9 +5,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:animateLayoutChanges="true"
-    android:background="@drawable/chatwallpaer"
-    tools:ignore="HardcodedText"
-    tools:context=".ChatRoom">
+    tools:context=".ChatRoom"
+    tools:ignore="HardcodedText">
 
     <LinearLayout
         android:id="@+id/topBar"
@@ -313,11 +312,11 @@
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="24dp"
         android:clickable="true"
+        android:contentDescription="Scroll to bottom"
         android:focusable="true"
         android:foreground="@drawable/ic_down"
         app:layout_constraintBottom_toBottomOf="@+id/chatBoxView"
         app:layout_constraintEnd_toEndOf="parent"
-        tools:visibility="gone"
-        android:contentDescription="Scroll to bottom" />
+        tools:visibility="gone" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

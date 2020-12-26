@@ -20,38 +20,41 @@ import com.google.firebase.messaging.RemoteMessage
 import com.snehashis.helloworld.MainActivity
 import com.snehashis.helloworld.R
 
-const val KEY_TOKEN = "Token"
 const val notificationChatRoomID = 3650
+const val MESSAGE_CHANNEL_ID = "messages_channel"
 class FirebaseCloudMessagingService : FirebaseMessagingService() {
 
-    private val MESSAGE_CHANNEL_ID = "messages_channel"
     private val currentUser = FirebaseAuth.getInstance().currentUser
-    private val messageStyle : NotificationCompat.MessagingStyle = NotificationCompat.MessagingStyle(Person.Builder().setName("You").build()).setConversationTitle("Chat Room")
-
+    private val chatRoomMessageStyle : NotificationCompat.MessagingStyle = NotificationCompat.MessagingStyle(Person.Builder().setName("You").build()).setConversationTitle("Chat Room")
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         super.onMessageReceived(remoteMessage)
         val sharedPreferences = getSharedPreferences("sharedPreferences", MODE_PRIVATE)
         val receiveAllNotifications = sharedPreferences.getBoolean("receiveAllNotifications", true)
         Log.e("ServiceUID", currentUser!!.uid)
+        val isDirect = ((remoteMessage.data["replyUID"] == "direct_reply") && (remoteMessage.data["fromUID"] == currentUser.uid))
         var isReply = remoteMessage.data["isReply"].toBoolean()
         if (isReply){
             isReply = (currentUser.uid == remoteMessage.data["replyUID"] )
             Log.e("UID CHECK",""+(remoteMessage.data["replyUID"]))
         }
-        if (receiveAllNotifications || isReply) {
+        //
+        if ( receiveAllNotifications || isReply || isDirect ) {
             val intent = Intent(this, MainActivity::class.java)
             val remoteInput = RemoteInput.Builder("chat_room_reply").setLabel("Your reply...").build()
             val replyIntent = Intent(this, NotificationReplyReceiver::class.java)
             val replyPendingIntent = PendingIntent.getBroadcast(this, 0, replyIntent, PendingIntent.FLAG_ONE_SHOT)
             val replyAction = NotificationCompat.Action.Builder(R.drawable.ic_reply,"Reply", replyPendingIntent).addRemoteInput(remoteInput).build()
+            val dismissIntent = Intent(this, NotificationReplyReceiver::class.java)
+            dismissIntent.putExtra("isDismissed", true)
+            val dismissPendingIntent = PendingIntent.getBroadcast(this, 0, dismissIntent, PendingIntent.FLAG_ONE_SHOT)
             val notificationManager =
                 getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 setupChannels(notificationManager)
             }
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
             val pendingIntent =
                 PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_ONE_SHOT)
             val largeIcon =
@@ -59,10 +62,9 @@ class FirebaseCloudMessagingService : FirebaseMessagingService() {
             val notificationSoundUri =
                 RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
             var currentStyle = restoreMessagingStyle(this, notificationChatRoomID)
-            val directReply = remoteMessage.data["directReply"]?.toInt()
-            val currentPerson = if(directReply == 1 && isReply)  null else Person.Builder().setName(remoteMessage.data["title"]).build()
+            val currentPerson = if(isDirect && !isReply)  null else Person.Builder().setName(remoteMessage.data["title"]).build()
             if (currentStyle == null)
-                currentStyle = messageStyle
+                currentStyle = chatRoomMessageStyle
             currentStyle.addMessage(
                 remoteMessage.data["message"],
                 remoteMessage.data["time"]!!.toLong(),
@@ -73,7 +75,7 @@ class FirebaseCloudMessagingService : FirebaseMessagingService() {
             val publicVersion = NotificationCompat.Builder(this, MESSAGE_CHANNEL_ID).apply {
                 setSmallIcon(R.drawable.ic_forum)
                 setContentTitle("Hello from ChatRoom")
-                setContentText("$count New Message")
+                setContentText("You have $count New Message")
                 setAutoCancel(true)
                 color = Color.BLACK
                 priority = NotificationCompat.PRIORITY_HIGH
@@ -95,8 +97,8 @@ class FirebaseCloudMessagingService : FirebaseMessagingService() {
                 setAutoCancel(true)
                 setSound(notificationSoundUri)
                 setContentIntent(pendingIntent)
+                setDeleteIntent(dismissPendingIntent)
             }
-
             notificationManager.notify(notificationChatRoomID, notificationBuilder.build())
         }
         
